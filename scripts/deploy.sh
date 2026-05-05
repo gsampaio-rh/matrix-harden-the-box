@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 RELEASE="${RELEASE:-harden-the-box}"
-NAMESPACE="${NAMESPACE:-harden-the-box}"
+NAMESPACE="${NAMESPACE:-workshop-content}"
 
 if [[ -f "$PROJECT_ROOT/.env" ]]; then
   set -a

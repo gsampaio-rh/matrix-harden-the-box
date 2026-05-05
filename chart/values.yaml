@@ -1,4 +1,4 @@
-namespace: harden-the-box
+namespace: workshop-content
 
 image: quay.io/matrix-workshop/harden-the-box:latest
 replicas: 1

@@ -1,5 +1,14 @@
 # Changelog: Harden the Box
 
+## Housekeeping — Deploy config cleanup
+
+**Date:** 2026-05-05
+
+- Changed default namespace from `exercise-system`/`harden-the-box` to `workshop-content` across all deploy artifacts
+- Removed stale multi-container image references from `.env.example` (leftover from pre-Sprint 2 architecture)
+
+---
+
 ## Sprint 2b — Scenario-Based Redesign
 
 **Date:** 2026-05-05

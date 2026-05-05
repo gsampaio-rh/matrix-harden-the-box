@@ -17,7 +17,7 @@ deploy: ## Deploy to OpenShift via Helm
 	bash scripts/deploy.sh
 
 clean: ## Uninstall Helm release
-	helm uninstall harden-the-box -n exercise-system --ignore-not-found || true
+	helm uninstall harden-the-box -n workshop-content --ignore-not-found || true
 
 install: ## Install all dependencies (Python venv + npm)
 	cd controller && python3 -m venv .venv && . .venv/bin/activate && pip install -e ".[dev]"
