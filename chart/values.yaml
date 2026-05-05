@@ -4,6 +4,10 @@ image: quay.io/matrix-workshop/harden-the-box:latest
 replicas: 1
 port: 8080
 
+build:
+  enabled: true
+  dockerfilePath: build/Dockerfile
+
 resources:
   limits:
     cpu: "500m"

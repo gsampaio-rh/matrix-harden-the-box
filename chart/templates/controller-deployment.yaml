@@ -6,6 +6,11 @@ metadata:
   labels:
     {{- include "htb.labels" . | nindent 4 }}
     {{- include "htb.selectorLabels" . | nindent 4 }}
+  {{- if .Values.build.enabled }}
+  annotations:
+    image.openshift.io/triggers: |
+      [{"from":{"kind":"ImageStreamTag","name":"harden-the-box:latest","namespace":"{{ .Values.namespace }}"},"fieldPath":"spec.template.spec.containers[?(@.name==\"harden-the-box\")].image"}]
+  {{- end }}
 spec:
   replicas: {{ .Values.replicas }}
   selector:
@@ -16,6 +21,7 @@ spec:
       labels:
         {{- include "htb.selectorLabels" . | nindent 8 }}
     spec:
+      serviceAccountName: harden-the-box
       containers:
         - name: harden-the-box
           image: {{ .Values.image }}

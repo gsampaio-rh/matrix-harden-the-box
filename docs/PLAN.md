@@ -1,27 +1,12 @@
 # Plan: Harden the Box
 
-**Status:** Sprint 4 (pending)
+**Status:** Sprint 5 (pending)
 **Date:** 2026-05-05
 **Related:** [Architecture](ARCHITECTURE.md) | [Changelog](CHANGELOG.md)
 
 ---
 
 Conventions: `[ ]` = pending | `[!]` = blocked | **Gate** = required criterion
-
-## Sprint 4 — Build & Deploy on OpenShift
-
-```
-Progress: [..........] 0%
-```
-
-- [ ] Create `BuildConfig` (OpenShift Docker strategy) for the single-container image
-- [ ] Create `ImageStream` to host built images in the internal registry
-- [ ] Write `DeploymentConfig` / `Deployment` + `Service` + `Route` manifests
-- [ ] Wire `make deploy` to `oc apply` the manifests and trigger a build
-- [ ] Verify Route, health checks, and WebSocket connectivity on the cluster
-- [ ] Load test with 20 concurrent browser sessions
-
-**Gate:** `make deploy` builds and deploys from source on OpenShift; full exercise cycle completes with at least 10 teams.
 
 ## Sprint 5 — Real Cluster Deployment + LLM Attack (Future Exploration)
 

@@ -1,0 +1,24 @@
+{{- if .Values.build.enabled }}
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: harden-the-box
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "htb.labels" . | nindent 4 }}
+spec:
+  source:
+    type: Binary
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: {{ .Values.build.dockerfilePath }}
+  output:
+    to:
+      kind: ImageStreamTag
+      name: harden-the-box:latest
+  resources:
+    limits:
+      cpu: "1"
+      memory: "1Gi"
+{{- end }}

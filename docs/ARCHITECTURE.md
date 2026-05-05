@@ -137,9 +137,24 @@ Single Docker image built from `build/Dockerfile` (multi-stage):
 1. Node 22 Alpine builds the React SPA
 2. UBI9 Python 3.12 runs FastAPI + serves static files
 
-Build: `make build` or `podman build -f build/Dockerfile -t harden-the-box:latest .`
+### OpenShift (primary)
 
-Local development: `make install && make dev` (runs controller + Vite dev server in parallel).
+`make deploy` runs the full pipeline:
+1. `helm upgrade --install` creates BuildConfig, ImageStream, Deployment, Service, Route
+2. `oc start-build --from-dir=.` uploads the repo and builds on the cluster (Docker strategy)
+3. ImageStream trigger auto-redeploys the Deployment when the build completes
+
+The BuildConfig and ImageStream are gated by `build.enabled` in `chart/values.yaml`. When disabled, the Deployment uses a pre-built external image directly.
+
+Iterate without re-helming: `make build-cluster` triggers a new build from local source.
+
+### Local development
+
+`make install && make dev` runs controller on `:8080` and Vite dev server on `:5173` (with API proxy).
+
+### Local container build
+
+`make build` builds the image with Podman. `make push` pushes to the configured registry.
 
 ## Key Design Decisions
 

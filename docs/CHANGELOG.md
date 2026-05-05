@@ -1,5 +1,55 @@
 # Changelog: Harden the Box
 
+## Sprint 4 — Build & Deploy on OpenShift
+
+**Date:** 2026-05-05
+**Status:** Complete
+
+### Key Outcomes
+
+- `make deploy` builds from source directly on OpenShift — no external registry required
+- OpenShift BuildConfig (Docker strategy, binary source) builds using the existing multi-stage Dockerfile
+- ImageStream stores built images in the internal registry with local lookup policy
+- Image-change trigger annotation auto-redeploys when a new build lands
+- Dockerfile fixed for OpenShift build pods: replaced bash process substitution with portable Python, fixed non-root write path
+- Load tested with 20 concurrent teams: zero errors, all endpoints under 200ms avg (except register at ~600ms due to WebSocket broadcast fan-out)
+- Full exercise cycle verified on cluster: register, scenarios, submit, results, leaderboard, WebSocket
+
+### What was added
+
+- `chart/templates/controller-buildconfig.yaml` — BuildConfig with Docker strategy, binary source, gated by `.Values.build.enabled`
+- `chart/templates/controller-imagestream.yaml` — ImageStream with local lookup policy, gated by `.Values.build.enabled`
+- `chart/values.yaml` — `build.enabled` and `build.dockerfilePath` configuration
+- `scripts/load-test.py` — async load test script (configurable team count, auto-detects route, tests full exercise flow + WebSocket)
+- `Makefile` — `build-cluster` target for triggering builds without re-helming
+
+### What was changed
+
+- `chart/templates/controller-deployment.yaml` — added `image.openshift.io/triggers` annotation for ImageStream auto-deploy, added `serviceAccountName`
+- `scripts/deploy.sh` — helm install (without `--wait` to avoid deadlock), then `oc start-build --from-dir --follow`, then `oc rollout status`
+- `build/Dockerfile` — replaced `pip install <(python -c ...)` process substitution with portable `/tmp/requirements.txt` generation
+
+### Decisions
+
+| Decision | Rationale |
+|---|---|
+| Binary source over Git source | Builds from local working directory — no git remote or webhook needed |
+| `build.enabled` gate | Chart still works with pre-built external images when set to false |
+| No `--wait` on helm install | Pods depend on the build; `--wait` would deadlock before build starts |
+| Image trigger annotation over manual rollout | Automatic redeployment when ImageStream tag updates |
+
+### Load Test Results (20 teams)
+
+| Endpoint | Avg | p95 | Max |
+|---|---|---|---|
+| Register | 586ms | 624ms | 643ms |
+| Scenarios | 170ms | 177ms | 200ms |
+| Submit | 167ms | 174ms | 175ms |
+| Results | 170ms | 175ms | 179ms |
+| WebSocket | held 9.6s | — | — |
+
+---
+
 ## Sprint 3 — Scenario UX & Results Deep-Dive
 
 **Date:** 2026-05-05
