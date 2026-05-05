@@ -1,5 +1,13 @@
 # Changelog: Harden the Box
 
+## Roadmap Update — Descoped Sprints 5.2/5.3
+
+**Date:** 2026-05-05
+
+Descoped **Victim Pod Deployment** (Sprint 5.2) and **LLM Attack Agent** (Sprint 5.3) from the active roadmap. The cluster integration and LLM agent overhead isn't justified for the current workshop scope — the deterministic scoring engine and client-side simulation already deliver the exercise goals. Both ideas moved to **Future Explorations** in PLAN.md for potential post-workshop revisit. Sprint 6 (Polish & Workshop Integration) renumbered to Sprint 5.2 as the next active sprint.
+
+---
+
 ## Sprint 5.1 — Kata Containers Visual Demo
 
 **Date:** 2026-05-05
