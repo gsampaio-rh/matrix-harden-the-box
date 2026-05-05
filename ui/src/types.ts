@@ -40,6 +40,28 @@ export interface TeamStatus {
   achievements: string[];
 }
 
+export interface ScenarioResult {
+  id: string;
+  category: string;
+  title: string;
+  selected_option: string | null;
+  selected_label: string | null;
+  best_option: string;
+  best_label: string;
+  points_earned: number;
+  max_points: number;
+  is_best: boolean;
+  explanation: string;
+}
+
+export interface TeamResults {
+  team: string;
+  score: number;
+  max_score: number;
+  achievements: string[];
+  scenarios: ScenarioResult[];
+}
+
 export interface WsMessage {
   event: string;
   data: Record<string, unknown>;

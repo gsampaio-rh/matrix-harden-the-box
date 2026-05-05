@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import confetti from "canvas-confetti";
 import { SMITH_FLAVOR, CATEGORY } from "../constants";
 import type { ProbeDetail, TeamScore } from "../types";
 
@@ -19,6 +20,7 @@ export default function AttackSimulation({
   const [phase, setPhase] = useState<"probes" | "score" | "done">("probes");
 
   const probes = scoreData.probes;
+  const confettiFired = useRef(false);
 
   useEffect(() => {
     if (phase !== "probes") return;
@@ -63,6 +65,31 @@ export default function AttackSimulation({
     }, 40);
     return () => clearInterval(interval);
   }, [phase, scoreData.score]);
+
+  useEffect(() => {
+    if (phase === "done" && scoreData.score >= scoreData.max_score && !confettiFired.current) {
+      confettiFired.current = true;
+      const end = Date.now() + 1500;
+      const frame = () => {
+        confetti({
+          particleCount: 3,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0, y: 0.7 },
+          colors: ["#00ff41", "#ffaa00", "#4488ff"],
+        });
+        confetti({
+          particleCount: 3,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1, y: 0.7 },
+          colors: ["#00ff41", "#ffaa00", "#4488ff"],
+        });
+        if (Date.now() < end) requestAnimationFrame(frame);
+      };
+      frame();
+    }
+  }, [phase, scoreData.score, scoreData.max_score]);
 
   const handleDismiss = useCallback(() => {
     onComplete();

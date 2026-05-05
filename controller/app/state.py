@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from app.models import ProbeResult
+from app.models import ProbeResult, ScenarioAnswer
 
 teams: dict[str, dict] = {}
 """team_id -> {"submitted": bool}"""
@@ -15,6 +15,9 @@ points: dict[str, int] = {}
 
 achievements: dict[str, list[str]] = {}
 """team_id -> list of achievement IDs"""
+
+submissions: dict[str, list[ScenarioAnswer]] = {}
+"""team_id -> raw answers submitted"""
 
 timer_end: datetime | None = None
 """UTC timestamp when the hardening phase ends, None if no timer is active"""
@@ -40,6 +43,14 @@ def has_submitted(team_id: str) -> bool:
 def mark_submitted(team_id: str) -> None:
     if team_id in teams:
         teams[team_id]["submitted"] = True
+
+
+def set_submission(team_id: str, answers: list[ScenarioAnswer]) -> None:
+    submissions[team_id] = answers
+
+
+def get_submission(team_id: str) -> list[ScenarioAnswer] | None:
+    return submissions.get(team_id)
 
 
 def set_scores(team_id: str, probes: list[ProbeResult]) -> None:
@@ -94,5 +105,6 @@ def clear_all() -> None:
     scores.clear()
     points.clear()
     achievements.clear()
+    submissions.clear()
     first_submission_team = None
     timer_end = None

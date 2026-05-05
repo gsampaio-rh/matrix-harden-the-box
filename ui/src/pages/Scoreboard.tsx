@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { Link } from "react-router-dom";
 import Leaderboard from "../components/Leaderboard";
 import ProbeResult from "../components/ProbeResult";
 import Achievements from "../components/Achievements";
@@ -65,9 +66,17 @@ export default function Scoreboard() {
       {myScore && myScore.probes.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">
-              Your Results — {teamId}
-            </h3>
+            <div className="flex items-center gap-3">
+              <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">
+                Your Results — {teamId}
+              </h3>
+              <Link
+                to="/results"
+                className="text-[10px] text-[var(--matrix-green)] hover:underline uppercase tracking-wider"
+              >
+                View Details
+              </Link>
+            </div>
             <span className="text-lg font-bold text-[var(--matrix-green)]">
               {myScore.score}/{myScore.max_score}
             </span>

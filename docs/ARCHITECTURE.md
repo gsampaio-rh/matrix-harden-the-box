@@ -51,7 +51,7 @@ FastAPI application that orchestrates the exercise and serves the UI.
 
 ### Scenario Definitions (`controller/app/scenarios.yaml`)
 
-Externalized YAML file containing all 7 scenario questions. Each scenario has a category, situation text, multiple options with point values and probe mappings, and a `best` answer key. To customize the exercise, edit this file — no code changes needed.
+Externalized YAML file containing all 7 scenario questions. Each scenario has a category, situation text, multiple options with point values and probe mappings, a `best` answer key, and an `explanation` field shown in the post-submission results review. To customize the exercise, edit this file — no code changes needed.
 
 Categories: Network (2), RBAC (2), SecurityContext (3).
 
@@ -62,7 +62,8 @@ React SPA built with Vite, served as static files by the controller in productio
 | Page | Purpose |
 |---|---|
 | `/` (Login) | Team self-registration (enter team name, auto-registered) |
-| `/harden` | Step-by-step scenario wizard with progress bar and review screen |
+| `/harden` | Step-by-step scenario wizard with category illustrations, progress bar, and review screen |
+| `/results` | Post-submission deep-dive: per-scenario breakdown with selected vs. best answer, explanations, illustrations |
 | `/scoreboard` | Live leaderboard with achievements, rank changes, probe details |
 | `/admin` | Facilitator controls: countdown timer, team list, reset |
 
@@ -107,6 +108,11 @@ sequenceDiagram
     C->>S: Store scores + achievements
     C-->>UI: WS: score_updated
     Note over UI: Attack simulation plays
+    Note over UI: Confetti on perfect score
+
+    T->>C: GET /api/teams/{id}/results
+    C->>T: Per-scenario breakdown with explanations
+    Note over UI: Results review page
 
     Note over UI: Timer expires
     UI->>UI: Submit button locked
@@ -117,7 +123,10 @@ sequenceDiagram
 | Feature | Description |
 |---|---|
 | Attack simulation | Sequential probe reveal with Smith flavor text and animations |
-| Achievements | Network Guardian, RBAC Master, Lockdown, Perfect Score, First Blood |
+| Confetti | Canvas confetti burst on perfect score during attack simulation |
+| Results review | Post-submission page showing per-scenario breakdown, explanations, illustrations |
+| Scenario illustrations | Inline SVG diagrams per category (Network, RBAC, SecurityContext) |
+| Achievements | Network Guardian, RBAC Master, Lockdown, Perfect Score, First Blood (with styled popover tooltips) |
 | Leaderboard | Rank change arrows, score animations, top-3 podium styling |
 | Countdown timer | Facilitator-controlled, visible on all pages, locks submissions |
 | One-shot submission | Teams submit once — no retries, raising the stakes |

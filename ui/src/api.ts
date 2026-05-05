@@ -31,6 +31,8 @@ export const api = {
 
   getTeamStatus: (teamId: string) => request(`/teams/${teamId}/status`),
 
+  getTeamResults: (teamId: string) => request(`/teams/${teamId}/results`),
+
   getLeaderboard: () => request("/scores"),
   getTeamScore: (teamId: string) => request(`/scores/${teamId}`),
 

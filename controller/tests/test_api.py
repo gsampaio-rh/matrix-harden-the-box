@@ -84,6 +84,7 @@ class TestScenarios:
                 assert "points" not in opt
                 assert "probes_blocked" not in opt
             assert "best" not in s
+            assert "explanation" not in s
 
 
 class TestSubmission:
@@ -186,6 +187,74 @@ class TestTeamStatus:
     async def test_status_404_unknown_team(self, client: AsyncClient):
         res = await client.get("/api/teams/unknown/status")
         assert res.status_code == 404
+
+
+class TestResults:
+    async def test_results_404_unknown_team(self, client: AsyncClient):
+        res = await client.get("/api/teams/unknown/results")
+        assert res.status_code == 404
+
+    async def test_results_404_before_submit(self, client: AsyncClient):
+        await register(client, "team-01")
+        res = await client.get("/api/teams/team-01/results")
+        assert res.status_code == 404
+
+    async def test_results_after_submit(self, client: AsyncClient):
+        await register(client, "team-01")
+        await client.post(
+            "/api/teams/team-01/submit",
+            json={"answers": _best_answers()},
+        )
+        res = await client.get("/api/teams/team-01/results")
+        assert res.status_code == 200
+        data = res.json()
+        assert data["team"] == "team-01"
+        assert data["score"] == data["max_score"]
+        assert len(data["scenarios"]) == 7
+        assert isinstance(data["achievements"], list)
+
+    async def test_results_scenario_shape(self, client: AsyncClient):
+        await register(client, "team-01")
+        await client.post(
+            "/api/teams/team-01/submit",
+            json={"answers": _best_answers()},
+        )
+        res = await client.get("/api/teams/team-01/results")
+        scenario = res.json()["scenarios"][0]
+        assert "id" in scenario
+        assert "category" in scenario
+        assert "title" in scenario
+        assert "selected_option" in scenario
+        assert "selected_label" in scenario
+        assert "best_option" in scenario
+        assert "best_label" in scenario
+        assert "points_earned" in scenario
+        assert "max_points" in scenario
+        assert "is_best" in scenario
+        assert "explanation" in scenario
+        assert len(scenario["explanation"]) > 0
+
+    async def test_results_best_answers_all_correct(self, client: AsyncClient):
+        await register(client, "team-01")
+        await client.post(
+            "/api/teams/team-01/submit",
+            json={"answers": _best_answers()},
+        )
+        res = await client.get("/api/teams/team-01/results")
+        for scenario in res.json()["scenarios"]:
+            assert scenario["is_best"] is True
+            assert scenario["points_earned"] == scenario["max_points"]
+
+    async def test_results_worst_answers_none_correct(self, client: AsyncClient):
+        await register(client, "team-01")
+        await client.post(
+            "/api/teams/team-01/submit",
+            json={"answers": _worst_answers()},
+        )
+        res = await client.get("/api/teams/team-01/results")
+        for scenario in res.json()["scenarios"]:
+            assert scenario["is_best"] is False
+            assert scenario["points_earned"] == 0
 
 
 class TestLeaderboard:

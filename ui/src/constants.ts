@@ -63,31 +63,36 @@ export const CATEGORY: Record<string, string> = {
 
 export const ACHIEVEMENTS: Record<
   string,
-  { label: string; icon: string; description: string }
+  { label: string; icon: string; description: string; howToEarn: string }
 > = {
   network_guardian: {
     label: "Network Guardian",
     icon: "🛡",
     description: "All network probes blocked",
+    howToEarn: "Choose the best option for both Network scenarios",
   },
   rbac_master: {
     label: "RBAC Master",
     icon: "🔑",
     description: "All RBAC probes blocked",
+    howToEarn: "Choose the best option for both RBAC scenarios",
   },
   lockdown: {
     label: "Lockdown",
     icon: "🔒",
     description: "All security context probes blocked",
+    howToEarn: "Choose the best option for all SecurityContext scenarios",
   },
   perfect_score: {
     label: "Perfect Score",
     icon: "⭐",
     description: "Maximum points achieved",
+    howToEarn: "Select the best answer for every scenario",
   },
   first_blood: {
     label: "First Blood",
     icon: "⚡",
     description: "First team to submit defenses",
+    howToEarn: "Be the first team to submit answers",
   },
 };

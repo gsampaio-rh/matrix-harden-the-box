@@ -17,7 +17,7 @@ SCENARIO_INDEX: dict[str, dict] = {s["id"]: s for s in SCENARIOS}
 
 
 def get_public_scenarios() -> list[dict]:
-    """Return scenarios safe for the frontend — strip points, probes_blocked, best."""
+    """Return scenarios safe for the frontend — strip points, probes_blocked, best, explanation."""
     public = []
     for s in SCENARIOS:
         options = {}

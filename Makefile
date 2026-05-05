@@ -35,5 +35,6 @@ dev-controller: ## Run controller only
 dev-ui: ## Run UI dev server only
 	cd ui && npm run dev
 
-test: ## Run controller tests
+test: ## Run all tests (backend + frontend)
 	cd controller && python -m pytest tests/ -v
+	cd ui && npm test

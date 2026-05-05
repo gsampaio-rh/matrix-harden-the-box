@@ -1,5 +1,64 @@
 # Changelog: Harden the Box
 
+## Sprint 3 — Scenario UX & Results Deep-Dive
+
+**Date:** 2026-05-05
+**Status:** Complete
+
+### Key Outcomes
+
+- Added `explanation` field to all 7 scenarios in `scenarios.yaml` — shown in post-submission results review
+- Built `GET /api/teams/{id}/results` endpoint returning per-scenario breakdown (selected vs. best answer, points, explanation)
+- Created 7 per-scenario inline SVG illustrations (one per scenario, tailored to each situation) using Matrix theme CSS variables
+- Built `/results` page with full scenario review: illustrations, answer comparison, points, explanations
+- Replaced native browser tooltips on achievement badges with styled popovers showing name, description, and earn criteria
+- Added fade-in transition animations between wizard steps
+- Added canvas-confetti burst on perfect score during attack simulation
+- Raw answers now stored in state for results reconstruction
+- Added vitest + testing-library for frontend component tests
+- 94 tests passing: 58 backend (pytest) + 36 frontend (vitest)
+
+### What was added
+
+- `controller/app/scenarios.yaml` — `explanation` field per scenario
+- `GET /api/teams/{id}/results` — detailed per-scenario breakdown endpoint
+- `ui/src/pages/Results.tsx` — post-submission results review page
+- `ui/src/components/illustrations/NetEgressDiagram.tsx` — egress topology (pod → internet/LLM/DNS)
+- `ui/src/components/illustrations/NetIngressDiagram.tsx` — ingress topology (attacker/frontend/kubelet → pod)
+- `ui/src/components/illustrations/RbacCrbDiagram.tsx` — ClusterRoleBinding → namespace Role
+- `ui/src/components/illustrations/RbacSecretsDiagram.tsx` — resourceNames scoping on Secrets
+- `ui/src/components/illustrations/SecRootDiagram.tsx` — runAsNonRoot + port 8080 vs root
+- `ui/src/components/illustrations/SecFilesystemDiagram.tsx` — readOnlyRootFilesystem + emptyDir
+- `ui/src/components/illustrations/SecCapsDiagram.tsx` — drop ALL capabilities
+- `canvas-confetti` dependency for perfect score celebration
+- `animate-fade-in` CSS animation for wizard step transitions
+- `howToEarn` field in `ACHIEVEMENTS` constant for tooltip content
+- `ScenarioResult`, `TeamResults` TypeScript types
+- `api.getTeamResults()` API method
+- Backend: 8 new tests — `TestResults` (6 tests), `TestYamlIntegrity.test_explanations_are_non_empty`, updated `test_scenarios_hide_answers`
+- Frontend: vitest + testing-library setup, 36 tests — `illustrations.test.tsx` (21), `Achievements.test.tsx` (6), `Results.test.tsx` (9)
+
+### What was changed
+
+- `Achievements.tsx` — rewritten with styled popover tooltips (hover/click)
+- `HardenConfig.tsx` — added illustrations, fade transitions, navigates to `/results` after attack simulation
+- `AttackSimulation.tsx` — fires confetti on perfect score
+- `Scoreboard.tsx` — added "View Details" link for own team
+- `App.tsx` — added `/results` route
+- `state.py` — added `submissions` dict to store raw answers
+- `routers/teams.py` — stores raw answers on submit, new results endpoint
+
+### Decisions
+
+| Decision | Rationale |
+|---|---|
+| Inline SVG over external assets | Responsive, dark-mode native via CSS variables, no asset bundling needed |
+| 7 per-scenario illustrations (not 3 per-category) | Each scenario has a distinct concept; tailored diagrams teach better |
+| Results as separate page (not modal) | Scrollable content, linkable URL, better for 7 scenarios of detail |
+| canvas-confetti (imperative) over React wrapper | 6kb, no wrapper needed, call directly on score reveal |
+
+---
+
 ## Housekeeping — Deploy config cleanup
 
 **Date:** 2026-05-05

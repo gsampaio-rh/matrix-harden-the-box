@@ -8,7 +8,6 @@ from app.services.scoring import (
     max_score,
 )
 
-
 REQUIRED_OPTION_FIELDS = {"label", "points", "probes_blocked"}
 
 
@@ -53,10 +52,16 @@ class TestYamlIntegrity:
                 )
 
     def test_every_scenario_has_required_top_level_keys(self):
-        required = {"id", "category", "title", "situation", "options", "best"}
+        required = {"id", "category", "title", "situation", "options", "best", "explanation"}
         for s in SCENARIOS:
             missing = required - s.keys()
             assert not missing, f"Scenario {s.get('id', '?')} missing: {missing}"
+
+    def test_explanations_are_non_empty(self):
+        for s in SCENARIOS:
+            assert s.get("explanation", "").strip(), (
+                f"Scenario {s['id']}: explanation must be a non-empty string"
+            )
 
 
 def _answer(scenario_id: str, option: str) -> ScenarioAnswer:

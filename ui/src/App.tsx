@@ -1,6 +1,7 @@
 import { Routes, Route, Link, useLocation } from "react-router-dom";
 import Login from "./pages/Login";
 import HardenConfig from "./pages/HardenConfig";
+import Results from "./pages/Results";
 import Scoreboard from "./pages/Scoreboard";
 import Admin from "./pages/Admin";
 import Timer from "./components/Timer";
@@ -45,6 +46,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/harden" element={<HardenConfig />} />
+          <Route path="/results" element={<Results />} />
           <Route path="/scoreboard" element={<Scoreboard />} />
           <Route path="/admin" element={<Admin />} />
         </Routes>

@@ -1,29 +1,12 @@
 # Plan: Harden the Box
 
-**Status:** Sprint 3 (pending)
+**Status:** Sprint 4 (pending)
 **Date:** 2026-05-05
 **Related:** [Architecture](ARCHITECTURE.md) | [Changelog](CHANGELOG.md)
 
 ---
 
 Conventions: `[ ]` = pending | `[!]` = blocked | **Gate** = required criterion
-
-## Sprint 3 — Scenario UX & Results Deep-Dive
-
-```
-Progress: [..........] 0%
-```
-
-- [ ] Add diagrams/illustrations to each scenario card (network topology, RBAC flow, container layers)
-- [ ] Source or create SVG/PNG assets for all 7 scenarios; bundle in `ui/public/scenarios/`
-- [ ] Render scenario illustrations inline in `ScenarioCard` component (responsive, dark-mode aware)
-- [ ] Add tooltip or info-panel to each achievement badge explaining what it means and how to earn it
-- [ ] Build `ResultsDetail` page/modal showing every scenario with: selected answer, best answer, points earned, and an explanation of why the best answer is best
-- [ ] Extend `scenarios.yaml` with an `explanation` field per scenario for the results view
-- [ ] Update `GET /api/teams/{id}/submit` response (or new endpoint) to return detailed per-scenario breakdown
-- [ ] Visual polish: transition animations between wizard steps, confetti on perfect score
-
-**Gate:** After submission, a participant can review each scenario with illustration, their choice vs. best choice, and a clear explanation.
 
 ## Sprint 4 — Build & Deploy on OpenShift
 

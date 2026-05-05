@@ -1,8 +1,25 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import AttackSimulation from "../components/AttackSimulation";
+import NetEgressDiagram from "../components/illustrations/NetEgressDiagram";
+import NetIngressDiagram from "../components/illustrations/NetIngressDiagram";
+import RbacCrbDiagram from "../components/illustrations/RbacCrbDiagram";
+import RbacSecretsDiagram from "../components/illustrations/RbacSecretsDiagram";
+import SecRootDiagram from "../components/illustrations/SecRootDiagram";
+import SecFilesystemDiagram from "../components/illustrations/SecFilesystemDiagram";
+import SecCapsDiagram from "../components/illustrations/SecCapsDiagram";
 import { api } from "../api";
 import type { Scenario, ScenarioAnswer, TeamScore } from "../types";
+
+const SCENARIO_ILLUSTRATION: Record<string, React.ComponentType<{ className?: string }>> = {
+  "net-egress": NetEgressDiagram,
+  "net-ingress": NetIngressDiagram,
+  "rbac-crb": RbacCrbDiagram,
+  "rbac-secrets": RbacSecretsDiagram,
+  "sec-root": SecRootDiagram,
+  "sec-filesystem": SecFilesystemDiagram,
+  "sec-capabilities": SecCapsDiagram,
+};
 
 const CATEGORY_COLORS: Record<string, string> = {
   Network: "var(--matrix-blue)",
@@ -19,7 +36,6 @@ export default function HardenConfig() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [attackData, setAttackData] = useState<TeamScore | null>(null);
-  const [lastScore, setLastScore] = useState<TeamScore | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [timerExpired, setTimerExpired] = useState(false);
 
@@ -100,9 +116,8 @@ export default function HardenConfig() {
   };
 
   const handleAttackComplete = useCallback(() => {
-    setLastScore(attackData);
-    setAttackData(null);
-  }, [attackData]);
+    navigate("/results");
+  }, [navigate]);
 
   if (attackData) {
     return (
@@ -117,62 +132,29 @@ export default function HardenConfig() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center space-y-4">
-          {lastScore ? (
-            <>
-              <div className="text-5xl font-bold tabular-nums">
-                <span
-                  className={
-                    lastScore.score >= lastScore.max_score
-                      ? "text-[var(--matrix-green)]"
-                      : lastScore.score > 0
-                        ? "text-[var(--matrix-yellow)]"
-                        : "text-[var(--matrix-red)]"
-                  }
-                >
-                  {lastScore.score}
-                </span>
-                <span className="text-gray-600 text-3xl">
-                  /{lastScore.max_score}
-                </span>
-              </div>
-              {lastScore.achievements.length > 0 && (
-                <div className="flex justify-center gap-2 flex-wrap">
-                  {lastScore.achievements.map((a) => (
-                    <span
-                      key={a}
-                      className="text-xs bg-[var(--matrix-green)]/10 text-[var(--matrix-green)] px-3 py-1 rounded-full"
-                    >
-                      {a.replace(/_/g, " ").toUpperCase()}
-                    </span>
-                  ))}
-                </div>
-              )}
-              <button
-                onClick={() => navigate("/scoreboard")}
-                className="mt-4 bg-[var(--matrix-green)] text-black font-bold px-8 py-3 rounded hover:brightness-110 transition"
-              >
-                View Scoreboard
-              </button>
-            </>
-          ) : (
-            <>
-              <p className="text-[var(--matrix-green)] font-bold text-lg">
-                Submission locked
-              </p>
-              <p className="text-sm text-gray-500">
-                Check the scoreboard for results.
-              </p>
-              <button
-                onClick={() => navigate("/scoreboard")}
-                className="mt-2 bg-[var(--matrix-green)] text-black font-bold px-8 py-3 rounded hover:brightness-110 transition"
-              >
-                View Scoreboard
-              </button>
-            </>
-          )}
+          <p className="text-[var(--matrix-green)] font-bold text-lg">
+            Submission locked
+          </p>
+          <p className="text-sm text-gray-500">
+            Your answers have been submitted.
+          </p>
           {error && (
             <p className="text-sm text-[var(--matrix-red)]">{error}</p>
           )}
+          <div className="flex justify-center gap-3">
+            <button
+              onClick={() => navigate("/results")}
+              className="bg-[var(--matrix-green)] text-black font-bold px-8 py-3 rounded hover:brightness-110 transition"
+            >
+              View Results
+            </button>
+            <button
+              onClick={() => navigate("/scoreboard")}
+              className="bg-gray-800 text-gray-300 font-bold px-8 py-3 rounded hover:bg-gray-700 transition"
+            >
+              Scoreboard
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -271,61 +253,69 @@ export default function HardenConfig() {
     <div className="max-w-2xl mx-auto space-y-6">
       <ProgressBar current={step} total={scenarios.length} />
 
-      <div className="text-center space-y-1">
-        <span
-          className="text-[10px] font-bold uppercase tracking-widest"
-          style={{
-            color: CATEGORY_COLORS[current.category] ?? "var(--matrix-blue)",
-          }}
-        >
-          {current.category}
-        </span>
-        <h2 className="text-lg font-bold text-gray-200">{current.title}</h2>
-      </div>
+      <div key={current.id} className="space-y-6 animate-fade-in">
+        <div className="text-center space-y-1">
+          <span
+            className="text-[10px] font-bold uppercase tracking-widest"
+            style={{
+              color: CATEGORY_COLORS[current.category] ?? "var(--matrix-blue)",
+            }}
+          >
+            {current.category}
+          </span>
+          <h2 className="text-lg font-bold text-gray-200">{current.title}</h2>
+        </div>
 
-      <div className="bg-[var(--matrix-card)] border border-[var(--matrix-border)] rounded-lg p-5">
-        <p className="text-sm text-gray-300 leading-relaxed">
-          {current.situation}
-        </p>
-      </div>
+        <div className="bg-[var(--matrix-card)] border border-[var(--matrix-border)] rounded-lg p-5">
+          {(() => {
+            const Illustration = SCENARIO_ILLUSTRATION[current.id];
+            return Illustration ? (
+              <Illustration className="hidden sm:block w-full max-w-xs mx-auto mb-4 opacity-80" />
+            ) : null;
+          })()}
+          <p className="text-sm text-gray-300 leading-relaxed">
+            {current.situation}
+          </p>
+        </div>
 
-      <div className="space-y-2">
-        {Object.entries(current.options)
-          .sort(([a], [b]) => a.localeCompare(b))
-          .map(([key, opt]) => {
-            const isSelected = selected === key;
-            return (
-              <label
-                key={key}
-                className={`flex items-start gap-3 p-4 rounded border cursor-pointer transition-all ${
-                  isSelected
-                    ? "border-[var(--matrix-green)]/40 bg-[var(--matrix-green)]/5"
-                    : "border-gray-800 hover:border-gray-600"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name={current.id}
-                  checked={isSelected}
-                  onChange={() => handleSelect(key)}
-                  className="mt-0.5 accent-[var(--matrix-green)]"
-                />
-                <div className="flex-1 min-w-0">
-                  <span className="text-sm text-gray-300">
-                    <span className="font-mono text-gray-500 mr-2">
-                      {key.toUpperCase()})
+        <div className="space-y-2">
+          {Object.entries(current.options)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([key, opt]) => {
+              const isSelected = selected === key;
+              return (
+                <label
+                  key={key}
+                  className={`flex items-start gap-3 p-4 rounded border cursor-pointer transition-all ${
+                    isSelected
+                      ? "border-[var(--matrix-green)]/40 bg-[var(--matrix-green)]/5"
+                      : "border-gray-800 hover:border-gray-600"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name={current.id}
+                    checked={isSelected}
+                    onChange={() => handleSelect(key)}
+                    className="mt-0.5 accent-[var(--matrix-green)]"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm text-gray-300">
+                      <span className="font-mono text-gray-500 mr-2">
+                        {key.toUpperCase()})
+                      </span>
+                      {opt.label}
                     </span>
-                    {opt.label}
-                  </span>
-                  {opt.hint && (
-                    <p className="text-xs text-gray-600 mt-1 italic">
-                      {opt.hint}
-                    </p>
-                  )}
-                </div>
-              </label>
-            );
-          })}
+                    {opt.hint && (
+                      <p className="text-xs text-gray-600 mt-1 italic">
+                        {opt.hint}
+                      </p>
+                    )}
+                  </div>
+                </label>
+              );
+            })}
+        </div>
       </div>
 
       <div className="flex gap-3">

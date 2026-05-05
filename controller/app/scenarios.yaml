@@ -3,6 +3,7 @@
 # Each scenario presents a realistic Kubernetes security situation.
 # Options have different point values and map to probes they block.
 # The "best" field marks the optimal answer.
+# The "explanation" field is shown after submission in the results review.
 #
 # To customize the exercise, edit this file — no code changes needed.
 
@@ -18,6 +19,14 @@
     the internet, the Kubernetes API server, and every other namespace.
     How do you configure egress?
   best: c
+  explanation: >
+    The principle of least privilege applies to network access too.
+    A blanket deny-all blocks DNS and breaks the app (option B).
+    Allowing TCP/443 everywhere (option D) still enables data exfiltration
+    to any HTTPS endpoint on the internet. The correct approach is
+    deny-all egress with surgical allow rules: UDP/53 for DNS resolution
+    and TCP/8080 scoped to the llm-inference namespace only. This ensures
+    the pod can function while preventing lateral movement and exfiltration.
   options:
     a:
       label: Leave it open — the pod needs network access to function
@@ -52,6 +61,14 @@
     compromises a neighbor could pivot directly to you.
     How do you lock down ingress?
   best: c
+  explanation: >
+    Denying all ingress (option B) blocks kubelet health probes, causing
+    Kubernetes to kill the pod after failed liveness checks — a self-inflicted
+    DoS. Allowing TCP/8080 from any source (option D) is barely better than
+    no policy at all. The correct approach scopes ingress to the kubelet
+    CIDR (for health checks) and your frontend namespace only. This
+    preserves liveness probes while blocking lateral movement from
+    compromised pods in other namespaces.
   options:
     a:
       label: Leave ingress open — health checks need it
@@ -88,6 +105,15 @@
     privileged pods. The app only needs to read pods and logs in its
     own namespace. What do you do?
   best: b
+  explanation: >
+    cluster-admin is the most dangerous binding in Kubernetes — it grants
+    full control over every resource in every namespace. Keeping it
+    (option A) or just auditing it (option D) leaves the blast radius
+    unlimited. Deleting the binding without a replacement (option C)
+    breaks the app's legitimate needs. The correct approach replaces the
+    cluster-wide binding with a namespace-scoped Role granting only
+    get/list on pods and pods/log — the minimum permissions the app
+    actually needs.
   options:
     a:
       label: Keep it — the app works fine and changing RBAC is risky
@@ -119,6 +145,15 @@
     on ALL Secrets in the namespace. There are 15 other Secrets you
     don't need, including TLS keys and API tokens. What do you do?
   best: b
+  explanation: >
+    Broad Secret access means a compromised pod can read every Secret in
+    the namespace — TLS keys, API tokens, other database passwords.
+    Removing watch (option D) still exposes all Secrets via get/list.
+    Moving to env vars (option C) is arguably worse because env vars
+    appear in `kubectl describe pod` and /proc/<pid>/environ. The correct
+    approach uses resourceNames to restrict access to the single Secret
+    the app needs (db-credentials), following the principle of least
+    privilege at the RBAC level.
   options:
     a:
       label: Keep the current Role — the app needs Secret access
@@ -156,6 +191,15 @@
     containers should not run as root. But port 80 requires root on
     Linux. What do you do?
   best: b
+  explanation: >
+    Running as root gives an attacker UID 0 inside the container — they
+    can modify system files, load kernel modules (if capabilities allow),
+    and exploit container escape vulnerabilities. Port 80 requires root
+    only because Linux restricts ports below 1024 to privileged users.
+    The fix is two-fold: change the app to listen on 8080 (a non-privileged
+    port) and set runAsNonRoot: true. Option C crashes because port 80
+    still needs root. Option D adds filesystem protection but doesn't
+    address the root user itself.
   options:
     a:
       label: Keep running as root — the app needs port 80
@@ -187,6 +231,14 @@
     writes temporary files to `/tmp` during request processing.
     How do you protect the filesystem?
   best: b
+  explanation: >
+    A writable root filesystem lets an attacker drop malicious binaries,
+    modify config files, or plant web shells. readOnlyRootFilesystem: true
+    prevents all writes to the container's root filesystem. But the app
+    needs /tmp, so you mount an emptyDir volume there — it's writable,
+    ephemeral, and scoped to /tmp only. Option C crashes because /tmp
+    becomes read-only too. Option D (noexec mount) prevents execution
+    but still allows overwriting configuration files and application code.
   options:
     a:
       label: Leave the filesystem writable — the app needs to write to /tmp
@@ -219,6 +271,16 @@
     port 8080 that doesn't need any special kernel privileges.
     What do you do?
   best: b
+  explanation: >
+    Default Linux capabilities include dangerous permissions like
+    CAP_NET_RAW (packet sniffing, ARP spoofing), CAP_KILL (signaling
+    any process), and CAP_SYS_CHROOT (which can aid container escapes).
+    A simple HTTP server on port 8080 needs none of these. Dropping ALL
+    capabilities removes the entire attack surface, and setting
+    allowPrivilegeEscalation: false prevents a process from gaining
+    capabilities it doesn't have. Option C keeps NET_BIND_SERVICE, which
+    is only needed for ports below 1024 — unnecessary on port 8080.
+    Option D prevents escalation but leaves the dangerous default caps active.
   options:
     a:
       label: Keep the defaults — they're there for a reason
