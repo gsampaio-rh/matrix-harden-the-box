@@ -4,6 +4,7 @@ import HardenConfig from "./pages/HardenConfig";
 import Results from "./pages/Results";
 import Scoreboard from "./pages/Scoreboard";
 import Admin from "./pages/Admin";
+import KataDemo from "./pages/KataDemo";
 import Timer from "./components/Timer";
 
 function NavLink({ to, label }: { to: string; label: string }) {
@@ -37,6 +38,7 @@ export default function App() {
             <NavLink to="/" label="Login" />
             <NavLink to="/harden" label="Harden" />
             <NavLink to="/scoreboard" label="Scoreboard" />
+            <NavLink to="/kata" label="Kata" />
             <NavLink to="/admin" label="Admin" />
           </nav>
         </div>
@@ -48,6 +50,7 @@ export default function App() {
           <Route path="/harden" element={<HardenConfig />} />
           <Route path="/results" element={<Results />} />
           <Route path="/scoreboard" element={<Scoreboard />} />
+          <Route path="/kata" element={<KataDemo />} />
           <Route path="/admin" element={<Admin />} />
         </Routes>
       </main>

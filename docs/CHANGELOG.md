@@ -1,5 +1,44 @@
 # Changelog: Harden the Box
 
+## Sprint 5.1 — Kata Containers Visual Demo
+
+**Date:** 2026-05-05
+**Status:** Complete
+
+### Key Outcomes
+
+- Built standalone `/kata` route with 5 click-through slides explaining Kata Containers isolation model
+- Facilitator can present runc vs Kata comparison visually without leaving the app
+- 5 inline SVG illustrations following existing wireframe style (monospace, Matrix theme CSS vars)
+- Keyboard navigation (arrow keys) + step indicator dots + Back/Next buttons
+- 12 new vitest tests covering rendering, navigation, and keyboard interaction
+- 60 tests passing total: 58 backend (pytest) + 48 frontend (vitest, up from 36)
+
+### What was added
+
+- `ui/src/pages/KataDemo.tsx` — 5-step click-through demo with keyboard support and `animate-fade-in` transitions
+- `ui/src/components/illustrations/KataTraditional.tsx` — shared kernel diagram (3 pods on 1 kernel)
+- `ui/src/components/illustrations/KataEscape.tsx` — container escape attack flow (red arrows through shared kernel)
+- `ui/src/components/illustrations/KataMicroVM.tsx` — Kata microVM model (per-pod guest kernels + hypervisor layer)
+- `ui/src/components/illustrations/KataBlocked.tsx` — attack stopped at microVM boundary (green checkmarks on isolated pods)
+- `ui/src/components/illustrations/KataDepth.tsx` — defense in depth (L1 K8s hardening + L2 Kata isolation)
+- `ui/src/pages/__tests__/KataDemo.test.tsx` — 12 tests (step rendering, navigation, keyboard, dot indicators)
+
+### What was changed
+
+- `ui/src/App.tsx` — added `/kata` route and "Kata" nav link between Scoreboard and Admin
+
+### Decisions
+
+| Decision | Rationale |
+|---|---|
+| Standalone route over post-scoring reveal | Facilitator controls when to present; not tied to exercise flow |
+| Click-through over auto-play | Facilitator controls pacing like slides; can pause to discuss each step |
+| No backend changes | Pure educational content; no state, no API, no WebSocket needed |
+| viewBox 400x200/220 for Kata SVGs | More horizontal space needed for 3 microVMs + hypervisor layer |
+
+---
+
 ## Sprint 4 — Build & Deploy on OpenShift
 
 **Date:** 2026-05-05
