@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+:root {
+  --matrix-green: #00ff41;
+  --matrix-dark: #0d0d0d;
+  --matrix-bg: #111111;
+  --matrix-card: #1a1a1a;
+  --matrix-border: #2a2a2a;
+  --matrix-red: #ff4444;
+  --matrix-yellow: #ffaa00;
+  --matrix-blue: #4488ff;
+}
+
+body {
+  background-color: var(--matrix-dark);
+  color: #e0e0e0;
+  font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+}

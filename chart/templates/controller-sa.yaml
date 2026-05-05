@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: harden-the-box
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "htb.labels" . | nindent 4 }}

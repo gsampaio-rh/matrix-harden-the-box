@@ -1,0 +1,6 @@
+apiVersion: v2
+name: harden-the-box
+description: Workshop exercise — Harden the Box scoring engine and UI (single container)
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

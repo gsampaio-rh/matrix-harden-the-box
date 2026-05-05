@@ -1,0 +1,16 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: harden-the-box
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "htb.labels" . | nindent 4 }}
+spec:
+  to:
+    kind: Service
+    name: harden-the-box
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

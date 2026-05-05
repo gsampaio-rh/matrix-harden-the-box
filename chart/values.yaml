@@ -1,0 +1,17 @@
+namespace: harden-the-box
+
+image: quay.io/matrix-workshop/harden-the-box:latest
+replicas: 1
+port: 8080
+
+resources:
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+  requests:
+    cpu: "100m"
+    memory: "256Mi"
+
+env:
+  teamPrefix: team
+  defaultTeamCount: "10"
