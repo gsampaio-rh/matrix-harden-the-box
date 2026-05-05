@@ -1,0 +1,242 @@
+# Harden the Box — Scenario Definitions
+#
+# Each scenario presents a realistic Kubernetes security situation.
+# Options have different point values and map to probes they block.
+# The "best" field marks the optimal answer.
+#
+# To customize the exercise, edit this file — no code changes needed.
+
+# ── Network ──────────────────────────────────────────────────────────
+
+- id: net-egress
+  category: Network
+  title: Outbound Traffic Control
+  situation: >
+    Your pod runs a web app that needs to call an LLM inference service
+    in namespace `llm-inference` on port 8080. During a security review,
+    you notice the pod has unrestricted outbound access — it can reach
+    the internet, the Kubernetes API server, and every other namespace.
+    How do you configure egress?
+  best: c
+  options:
+    a:
+      label: Leave it open — the pod needs network access to function
+      points: 0
+      probes_blocked: []
+    b:
+      label: Deny all egress with a NetworkPolicy
+      hint: Blocks everything including DNS and the LLM call
+      points: 5
+      probes_blocked: [NET-01]
+    c:
+      label: >
+        Deny all egress, then add allow rules for
+        UDP/53 (DNS) and TCP/8080 to llm-inference namespace only
+      points: 20
+      probes_blocked: [NET-01, NET-02]
+    d:
+      label: Deny all egress, then allow TCP/443 to any destination
+      hint: >
+        HTTPS works everywhere, but so does
+        data exfiltration to any external server
+      points: 8
+      probes_blocked: [NET-01]
+
+- id: net-ingress
+  category: Network
+  title: Inbound Access & Lateral Movement
+  situation: >
+    Your pod exposes an HTTP API on port 8080. Kubernetes kubelet sends
+    health-check probes to this port every 10 seconds. You also discover
+    that any pod in any namespace can reach your API — an attacker who
+    compromises a neighbor could pivot directly to you.
+    How do you lock down ingress?
+  best: c
+  options:
+    a:
+      label: Leave ingress open — health checks need it
+      points: 0
+      probes_blocked: []
+    b:
+      label: Deny all ingress with a NetworkPolicy
+      hint: >
+        Blocks everything including kubelet health probes
+        — the pod gets killed after failing liveness checks
+      points: 5
+      probes_blocked: [NET-03]
+    c:
+      label: >
+        Deny all ingress, then allow TCP/8080 from the
+        kubelet CIDR and your frontend namespace only
+      points: 20
+      probes_blocked: [NET-03]
+    d:
+      label: Deny all ingress, then allow TCP/8080 from any source
+      hint: Health checks work, but so does any attacker pod in the cluster
+      points: 3
+      probes_blocked: []
+
+# ── RBAC ─────────────────────────────────────────────────────────────
+
+- id: rbac-crb
+  category: RBAC
+  title: Overpowered Service Account
+  situation: >
+    Your pod's ServiceAccount has a ClusterRoleBinding to `cluster-admin`.
+    This gives the pod full control over every resource in the entire
+    cluster — it can delete namespaces, read all Secrets, and create
+    privileged pods. The app only needs to read pods and logs in its
+    own namespace. What do you do?
+  best: b
+  options:
+    a:
+      label: Keep it — the app works fine and changing RBAC is risky
+      points: 0
+      probes_blocked: []
+    b:
+      label: >
+        Delete the ClusterRoleBinding and create a namespace-scoped
+        Role with get/list on pods and pods/log only
+      points: 20
+      probes_blocked: [RBAC-01, RBAC-02, RBAC-03]
+    c:
+      label: Delete the ClusterRoleBinding but don't create a replacement
+      hint: The pod loses all API access — kubectl exec and log viewing break
+      points: 10
+      probes_blocked: [RBAC-01, RBAC-02, RBAC-03]
+    d:
+      label: Keep the ClusterRoleBinding but add an audit log to track usage
+      hint: Logging doesn't prevent an attacker from using the permissions
+      points: 2
+      probes_blocked: []
+
+- id: rbac-secrets
+  category: RBAC
+  title: Secret Access Scope
+  situation: >
+    Your app reads a database password from a Kubernetes Secret named
+    `db-credentials`. The current Role grants `get`, `list`, and `watch`
+    on ALL Secrets in the namespace. There are 15 other Secrets you
+    don't need, including TLS keys and API tokens. What do you do?
+  best: b
+  options:
+    a:
+      label: Keep the current Role — the app needs Secret access
+      points: 0
+      probes_blocked: []
+    b:
+      label: >
+        Restrict the Role to `get` on the specific Secret
+        `db-credentials` using a resourceNames field
+      points: 20
+      probes_blocked: [RBAC-02]
+    c:
+      label: >
+        Remove all Secret access and mount the password
+        as an environment variable instead
+      hint: >
+        Env vars appear in `kubectl describe pod`
+        and process listings — arguably worse
+      points: 5
+      probes_blocked: [RBAC-02]
+    d:
+      label: Restrict to get/list on Secrets (remove watch)
+      hint: Still exposes every Secret in the namespace to the pod
+      points: 3
+      probes_blocked: []
+
+# ── SecurityContext ──────────────────────────────────────────────────
+
+- id: sec-root
+  category: SecurityContext
+  title: Container User Privileges
+  situation: >
+    Your container runs as root (UID 0) by default. The Dockerfile uses
+    `USER root` and the app listens on port 80. The security team says
+    containers should not run as root. But port 80 requires root on
+    Linux. What do you do?
+  best: b
+  options:
+    a:
+      label: Keep running as root — the app needs port 80
+      points: 0
+      probes_blocked: []
+    b:
+      label: >
+        Set runAsNonRoot: true and change the app to
+        listen on port 8080 instead
+      points: 20
+      probes_blocked: [SEC-02]
+    c:
+      label: "Set runAsNonRoot: true but keep port 80"
+      hint: The container crashes on startup — can't bind to port 80 without root
+      points: 3
+      probes_blocked: [SEC-02]
+    d:
+      label: "Keep root but add readOnlyRootFilesystem: true to compensate"
+      hint: Read-only FS helps, but root can still mount filesystems and escape
+      points: 5
+      probes_blocked: [SEC-01]
+
+- id: sec-filesystem
+  category: SecurityContext
+  title: Filesystem Protection
+  situation: >
+    An attacker who gets shell access to your container can write
+    malicious scripts to the filesystem and execute them. Your app
+    writes temporary files to `/tmp` during request processing.
+    How do you protect the filesystem?
+  best: b
+  options:
+    a:
+      label: Leave the filesystem writable — the app needs to write to /tmp
+      points: 0
+      probes_blocked: []
+    b:
+      label: >
+        Set readOnlyRootFilesystem: true and mount an
+        emptyDir volume at /tmp
+      points: 20
+      probes_blocked: [SEC-01]
+    c:
+      label: "Set readOnlyRootFilesystem: true without an emptyDir"
+      hint: The app crashes — it can't write temp files
+      points: 3
+      probes_blocked: [SEC-01]
+    d:
+      label: Keep the filesystem writable but set noexec on the mount
+      hint: Prevents execution but an attacker can still overwrite config files
+      points: 5
+      probes_blocked: []
+
+- id: sec-capabilities
+  category: SecurityContext
+  title: Linux Capabilities
+  situation: >
+    Your container inherits default Linux capabilities including
+    CAP_NET_RAW (allows packet sniffing), CAP_KILL (can signal any
+    process), and CAP_SYS_CHROOT. The app is a simple HTTP server on
+    port 8080 that doesn't need any special kernel privileges.
+    What do you do?
+  best: b
+  options:
+    a:
+      label: Keep the defaults — they're there for a reason
+      points: 0
+      probes_blocked: []
+    b:
+      label: "Drop ALL capabilities and set allowPrivilegeEscalation: false"
+      points: 20
+      probes_blocked: [SEC-01, SEC-02]
+    c:
+      label: Drop ALL capabilities but keep NET_BIND_SERVICE
+      hint: >
+        NET_BIND_SERVICE is only needed for ports below 1024 —
+        if you already changed to port 8080, this is unnecessary
+      points: 12
+      probes_blocked: [SEC-01]
+    d:
+      label: "Just set allowPrivilegeEscalation: false and leave capabilities alone"
+      hint: Prevents escalation but leaves dangerous caps like NET_RAW active
+      points: 5
+      probes_blocked: []

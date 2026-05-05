@@ -4,11 +4,11 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from app import state
-from app.models import DefenseConfig
+from app.models import SubmissionPayload
 from app.services.scoring import (
     build_score_response,
     compute_achievements,
-    evaluate_defenses,
+    evaluate_submission,
 )
 from app.ws import manager
 
@@ -36,37 +36,32 @@ async def register_team(req: RegisterRequest):
     return {"team_id": team_id, "status": "registered"}
 
 
-@router.post("/{team_id}/defenses")
-async def set_defenses(team_id: str, config: DefenseConfig):
+@router.post("/{team_id}/submit")
+async def submit_answers(team_id: str, payload: SubmissionPayload):
     team = state.get_team(team_id)
     if not team:
         raise HTTPException(status_code=404, detail=f"Team {team_id} not found")
 
-    probes = evaluate_defenses(config)
-    is_first = state.record_first_submission(team_id)
-    achs = compute_achievements(probes, is_first)
+    if state.has_submitted(team_id):
+        raise HTTPException(status_code=409, detail="Already submitted — one shot only")
 
-    state.set_defenses(team_id, config)
+    probes, total_points = evaluate_submission(payload.answers)
+    is_first = state.record_first_submission(team_id)
+    achs = compute_achievements(probes, total_points, is_first)
+
+    state.mark_submitted(team_id)
     state.set_scores(team_id, probes)
+    state.set_points(team_id, total_points)
     state.set_achievements(team_id, achs)
 
-    score_data = build_score_response(team_id, probes, achs)
+    score_data = build_score_response(team_id, probes, total_points, achs)
     await manager.broadcast("score_updated", score_data)
     logger.info(
-        "Defenses scored for %s: %d/%d", team_id, score_data["score"], score_data["max_score"],
+        "Submission scored for %s: %d/%d",
+        team_id, score_data["score"], score_data["max_score"],
     )
 
     return score_data
-
-
-@router.get("/{team_id}/defenses")
-async def get_defenses(team_id: str):
-    team = state.get_team(team_id)
-    if not team:
-        raise HTTPException(status_code=404, detail=f"Team {team_id} not found")
-
-    defenses = state.get_defenses(team_id)
-    return {"team": team_id, "defenses": defenses}
 
 
 @router.get("/{team_id}/status")
@@ -77,6 +72,6 @@ async def get_team_status(team_id: str):
 
     return {
         "team": team_id,
-        "defenses_applied": team.get("defenses") is not None,
+        "submitted": state.has_submitted(team_id),
         "achievements": state.get_achievements(team_id),
     }

@@ -8,6 +8,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.routers import admin, scores, teams
+from app.scenarios import get_public_scenarios
 from app.ws import manager
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -39,6 +40,11 @@ app.add_middleware(
 app.include_router(teams.router, prefix="/api/teams", tags=["teams"])
 app.include_router(scores.router, prefix="/api/scores", tags=["scores"])
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
+
+
+@app.get("/api/scenarios")
+async def list_scenarios():
+    return {"scenarios": get_public_scenarios()}
 
 
 @app.get("/healthz")

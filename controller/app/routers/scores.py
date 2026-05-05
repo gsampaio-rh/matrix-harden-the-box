@@ -3,9 +3,7 @@ import logging
 from fastapi import APIRouter
 
 from app import state
-from app.config import settings
-from app.services.scoring import build_score_response
-from app.ws import manager
+from app.services.scoring import ALL_PROBE_IDS, build_score_response, max_score
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -16,16 +14,17 @@ async def leaderboard():
     all_teams = []
     for team_id in state.get_all_teams():
         probes = state.get_scores(team_id)
+        pts = state.get_points(team_id)
         achs = state.get_achievements(team_id)
         if probes:
-            all_teams.append(build_score_response(team_id, probes, achs))
+            all_teams.append(build_score_response(team_id, probes, pts, achs))
         else:
             all_teams.append({
                 "team": team_id,
                 "score": 0,
-                "max_score": sum(settings.probe_points.values()),
+                "max_score": max_score(),
                 "blocked_count": 0,
-                "total_probes": len(settings.probe_points),
+                "total_probes": len(ALL_PROBE_IDS),
                 "probes": [],
                 "achievements": [],
             })
@@ -37,17 +36,11 @@ async def leaderboard():
 @router.get("/{team_id}")
 async def team_score(team_id: str):
     probes = state.get_scores(team_id)
+    pts = state.get_points(team_id)
     achs = state.get_achievements(team_id)
     if probes is None:
         return {
             "team": team_id, "probes": [], "score": 0,
             "achievements": [], "message": "No scores yet",
         }
-    return build_score_response(team_id, probes, achs)
-
-
-@router.delete("")
-async def reset_scores():
-    state.clear_scores()
-    await manager.broadcast("scores_reset", {})
-    return {"status": "scores cleared"}
+    return build_score_response(team_id, probes, pts, achs)

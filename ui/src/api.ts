@@ -1,3 +1,5 @@
+import type { ScenarioAnswer } from "./types";
+
 const BASE = "/api";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -19,13 +21,13 @@ export const api = {
       body: JSON.stringify({ team_id: teamId }),
     }),
 
-  applyDefenses: (teamId: string, config: unknown) =>
-    request(`/teams/${teamId}/defenses`, {
-      method: "POST",
-      body: JSON.stringify(config),
-    }),
+  getScenarios: () => request("/scenarios"),
 
-  getDefenses: (teamId: string) => request(`/teams/${teamId}/defenses`),
+  submitAnswers: (teamId: string, answers: ScenarioAnswer[]) =>
+    request(`/teams/${teamId}/submit`, {
+      method: "POST",
+      body: JSON.stringify({ answers }),
+    }),
 
   getTeamStatus: (teamId: string) => request(`/teams/${teamId}/status`),
 

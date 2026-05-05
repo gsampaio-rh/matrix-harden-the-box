@@ -61,18 +61,6 @@ export const CATEGORY: Record<string, string> = {
   "ESC-01": "Kernel",
 };
 
-export const PROBE_POINTS: Record<string, number> = {
-  "NET-01": 10,
-  "NET-02": 10,
-  "NET-03": 15,
-  "RBAC-01": 10,
-  "RBAC-02": 15,
-  "RBAC-03": 10,
-  "SEC-01": 10,
-  "SEC-02": 10,
-  "ESC-01": 0,
-};
-
 export const ACHIEVEMENTS: Record<
   string,
   { label: string; icon: string; description: string }

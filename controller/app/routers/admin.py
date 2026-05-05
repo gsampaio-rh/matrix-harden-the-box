@@ -23,21 +23,22 @@ async def reset_exercise():
 @router.get("/teams")
 async def list_teams():
     result = []
-    for team_id, team in state.get_all_teams().items():
+    for team_id, _team in state.get_all_teams().items():
         probes = state.get_scores(team_id)
+        pts = state.get_points(team_id)
         achs = state.get_achievements(team_id)
         if probes:
-            score_data = build_score_response(team_id, probes, achs)
+            score_data = build_score_response(team_id, probes, pts, achs)
             result.append({
                 "team_id": team_id,
-                "defenses_applied": True,
+                "submitted": state.has_submitted(team_id),
                 "score": score_data["score"],
                 "achievements": achs,
             })
         else:
             result.append({
                 "team_id": team_id,
-                "defenses_applied": team.get("defenses") is not None,
+                "submitted": False,
                 "score": None,
                 "achievements": [],
             })

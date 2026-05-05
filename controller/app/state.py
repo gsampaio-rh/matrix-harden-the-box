@@ -2,13 +2,16 @@
 
 from datetime import datetime
 
-from app.models import DefenseConfig, ProbeResult
+from app.models import ProbeResult
 
 teams: dict[str, dict] = {}
-"""team_id -> {"defenses": DefenseConfig | None}"""
+"""team_id -> {"submitted": bool}"""
 
 scores: dict[str, list[ProbeResult]] = {}
-"""team_id -> list of probe results from last evaluation"""
+"""team_id -> list of probe results from evaluation"""
+
+points: dict[str, int] = {}
+"""team_id -> total points earned"""
 
 achievements: dict[str, list[str]] = {}
 """team_id -> list of achievement IDs"""
@@ -17,27 +20,26 @@ timer_end: datetime | None = None
 """UTC timestamp when the hardening phase ends, None if no timer is active"""
 
 first_submission_team: str | None = None
-"""The first team to submit defenses — earns 'First Blood'"""
+"""The first team to submit — earns 'First Blood'"""
 
 
 def register_team(team_id: str) -> None:
-    teams[team_id] = {"defenses": None}
+    if team_id not in teams:
+        teams[team_id] = {"submitted": False}
 
 
 def get_team(team_id: str) -> dict | None:
     return teams.get(team_id)
 
 
-def set_defenses(team_id: str, defenses: DefenseConfig) -> None:
-    if team_id in teams:
-        teams[team_id]["defenses"] = defenses
-
-
-def get_defenses(team_id: str) -> DefenseConfig | None:
+def has_submitted(team_id: str) -> bool:
     team = teams.get(team_id)
-    if team:
-        return team.get("defenses")
-    return None
+    return team is not None and team.get("submitted", False)
+
+
+def mark_submitted(team_id: str) -> None:
+    if team_id in teams:
+        teams[team_id]["submitted"] = True
 
 
 def set_scores(team_id: str, probes: list[ProbeResult]) -> None:
@@ -46,6 +48,14 @@ def set_scores(team_id: str, probes: list[ProbeResult]) -> None:
 
 def get_scores(team_id: str) -> list[ProbeResult] | None:
     return scores.get(team_id)
+
+
+def set_points(team_id: str, pts: int) -> None:
+    points[team_id] = pts
+
+
+def get_points(team_id: str) -> int:
+    return points.get(team_id, 0)
 
 
 def set_achievements(team_id: str, achs: list[str]) -> None:
@@ -82,11 +92,7 @@ def clear_all() -> None:
     global first_submission_team, timer_end
     teams.clear()
     scores.clear()
+    points.clear()
     achievements.clear()
     first_submission_team = None
     timer_end = None
-
-
-def clear_scores() -> None:
-    scores.clear()
-    achievements.clear()

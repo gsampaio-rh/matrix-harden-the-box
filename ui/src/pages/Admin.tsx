@@ -144,9 +144,9 @@ export default function Admin() {
                   {t.team_id}
                 </div>
                 <div className="flex items-center gap-2 mt-1">
-                  {t.defenses_applied && (
+                  {t.submitted && (
                     <span className="text-[10px] text-[var(--matrix-green)]">
-                      hardened
+                      submitted
                     </span>
                   )}
                   {t.score !== null && (

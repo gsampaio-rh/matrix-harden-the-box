@@ -8,23 +8,39 @@
 
 Conventions: `[ ]` = pending | `[!]` = blocked | **Gate** = required criterion
 
-## Sprint 3 — Build & Deploy Pipeline
+## Sprint 3 — Scenario UX & Results Deep-Dive
 
 ```
 Progress: [..........] 0%
 ```
 
-- [ ] Set up GitHub repo `matrix-harden-the-box` with branch protection
-- [ ] Configure container image build (GitHub Actions)
-- [ ] Push image to `quay.io/matrix-workshop/harden-the-box:latest`
-- [ ] Update Helm chart for single-container deployment
-- [ ] End-to-end deploy on OpenShift test cluster via `make deploy`
-- [ ] Verify Routes, health checks, and WebSocket connectivity
+- [ ] Add diagrams/illustrations to each scenario card (network topology, RBAC flow, container layers)
+- [ ] Source or create SVG/PNG assets for all 7 scenarios; bundle in `ui/public/scenarios/`
+- [ ] Render scenario illustrations inline in `ScenarioCard` component (responsive, dark-mode aware)
+- [ ] Add tooltip or info-panel to each achievement badge explaining what it means and how to earn it
+- [ ] Build `ResultsDetail` page/modal showing every scenario with: selected answer, best answer, points earned, and an explanation of why the best answer is best
+- [ ] Extend `scenarios.yaml` with an `explanation` field per scenario for the results view
+- [ ] Update `GET /api/teams/{id}/submit` response (or new endpoint) to return detailed per-scenario breakdown
+- [ ] Visual polish: transition animations between wizard steps, confetti on perfect score
+
+**Gate:** After submission, a participant can review each scenario with illustration, their choice vs. best choice, and a clear explanation.
+
+## Sprint 4 — Build & Deploy on OpenShift
+
+```
+Progress: [..........] 0%
+```
+
+- [ ] Create `BuildConfig` (OpenShift Docker strategy) for the single-container image
+- [ ] Create `ImageStream` to host built images in the internal registry
+- [ ] Write `DeploymentConfig` / `Deployment` + `Service` + `Route` manifests
+- [ ] Wire `make deploy` to `oc apply` the manifests and trigger a build
+- [ ] Verify Route, health checks, and WebSocket connectivity on the cluster
 - [ ] Load test with 20 concurrent browser sessions
 
-**Gate:** Full exercise cycle completes on a deployed instance with at least 10 teams.
+**Gate:** `make deploy` builds and deploys from source on OpenShift; full exercise cycle completes with at least 10 teams.
 
-## Sprint 4 — Real Cluster Deployment + LLM Attack (Future Exploration)
+## Sprint 5 — Real Cluster Deployment + LLM Attack (Future Exploration)
 
 ```
 Progress: [..........] 0%
@@ -39,7 +55,7 @@ Progress: [..........] 0%
 
 **Gate:** LLM agent can attempt at least 3 distinct attack vectors against a deployed pod.
 
-## Sprint 5 — Polish & Workshop Integration
+## Sprint 6 — Polish & Workshop Integration
 
 ```
 Progress: [..........] 0%

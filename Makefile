@@ -1,4 +1,4 @@
-.PHONY: build push deploy clean dev-controller dev-ui test help
+.PHONY: build push deploy clean dev dev-controller dev-ui install test help
 
 REGISTRY ?= quay.io/matrix-workshop
 TAG ?= latest
@@ -19,10 +19,20 @@ deploy: ## Deploy to OpenShift via Helm
 clean: ## Uninstall Helm release
 	helm uninstall harden-the-box -n exercise-system --ignore-not-found || true
 
-dev-controller: ## Run controller locally
+install: ## Install all dependencies (Python venv + npm)
+	cd controller && python3 -m venv .venv && . .venv/bin/activate && pip install -e ".[dev]"
+	cd ui && npm install
+
+dev: ## Run backend + frontend together (open http://localhost:5173)
+	@echo "Starting backend on :8080 and frontend on :5173..."
+	@cd controller && . .venv/bin/activate && uvicorn app.main:app --reload --port 8080 & \
+	 cd ui && npm run dev & \
+	 wait
+
+dev-controller: ## Run controller only
 	cd controller && uvicorn app.main:app --reload --port 8080
 
-dev-ui: ## Run UI dev server locally
+dev-ui: ## Run UI dev server only
 	cd ui && npm run dev
 
 test: ## Run controller tests

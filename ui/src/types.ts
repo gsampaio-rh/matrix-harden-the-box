@@ -1,31 +1,19 @@
-export interface NetworkPolicyConfig {
-  denyAllEgress: boolean;
-  allowLlmEgress: boolean;
-  allowDns: boolean;
-  denyAllIngress: boolean;
-  allowHealthChecks: boolean;
+export interface ScenarioOption {
+  label: string;
+  hint?: string;
 }
 
-export interface RbacConfig {
-  deleteClusterRoleBinding: boolean;
-  createNamespacedRole: boolean;
-  allowedResources: string[];
-  allowedVerbs: string[];
+export interface Scenario {
+  id: string;
+  category: string;
+  title: string;
+  situation: string;
+  options: Record<string, ScenarioOption>;
 }
 
-export interface SecurityContextConfig {
-  runAsNonRoot: boolean;
-  dropAllCapabilities: boolean;
-  readOnlyRootFilesystem: boolean;
-  mountTmpEmptyDir: boolean;
-  seccompRuntimeDefault: boolean;
-  disallowPrivilegeEscalation: boolean;
-}
-
-export interface DefenseConfig {
-  network_policy: NetworkPolicyConfig;
-  rbac: RbacConfig;
-  security_context: SecurityContextConfig;
+export interface ScenarioAnswer {
+  scenarioId: string;
+  selectedOption: string;
 }
 
 export interface ProbeDetail {
@@ -47,7 +35,7 @@ export interface TeamScore {
 
 export interface TeamStatus {
   team_id: string;
-  defenses_applied: boolean;
+  submitted: boolean;
   score: number | null;
   achievements: string[];
 }
