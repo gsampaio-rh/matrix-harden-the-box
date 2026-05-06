@@ -2,6 +2,7 @@
 
 **Status:** No active sprint
 **Date:** 2026-05-06
+**Last delivery:** Harness Engineering slide deck + deploy script fix
 **Related:** [Architecture](ARCHITECTURE.md) | [Changelog](CHANGELOG.md)
 
 ---

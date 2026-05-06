@@ -1,5 +1,48 @@
 # Changelog: Harden the Box
 
+## Harness Engineering Slide Deck + Deploy Fix
+
+**Date:** 2026-05-06
+**Status:** Complete
+
+### Key Outcomes
+
+- Built standalone `/harness` route with 6 click-through slides explaining harness engineering principles
+- Mirrors the existing `/kata` pattern: `STEPS` array, keyboard navigation (arrow keys), step dots, Back/Next
+- Visual accent uses `--chapter-configure` (indigo) to align with Chapter 2 branding
+- Last slide CTA links to `/configure/exercise` ("Start the Exercise")
+- 86 frontend tests passing (up from 74) — 12 new tests for HarnessDemo
+- Fixed deploy script bug: empty `BUILD_NAME` guard prevents misleading error messages
+
+### Slides
+
+| Step | Title | Concept |
+|------|-------|---------|
+| 1 | Configuration = Behavior | Config files control the agent; whoever writes the config controls the agent |
+| 2 | Repository as Source of Truth | If it's not in the repo, the agent doesn't know about it |
+| 3 | Map, Not Encyclopedia | CLAUDE.md should be concise (~80-100 lines); skills handle depth |
+| 4 | Brain vs Hands | LLM reasoning is separate from tools; each tool is an attack surface |
+| 5 | Circuit Breakers | Max turns, timeouts, env scrub prevent runaway behavior |
+| 6 | Self-Evaluation is Broken | Agents can't reliably judge their own work; need external verification |
+
+### What was added
+
+- `ui/src/pages/HarnessDemo.tsx` — 6-step slide deck with keyboard support and fade transitions
+- `ui/src/components/illustrations/HarnessConfig.tsx` — config-to-agent flow diagram
+- `ui/src/components/illustrations/HarnessRepo.tsx` — context window with visible/invisible files
+- `ui/src/components/illustrations/HarnessMap.tsx` — concise map vs bloated encyclopedia
+- `ui/src/components/illustrations/HarnessBrain.tsx` — brain/hands separation with attack surface markers
+- `ui/src/components/illustrations/HarnessBreakers.tsx` — circuit breaker panel (3 switches)
+- `ui/src/components/illustrations/HarnessEval.tsx` — self-evaluation vs external verification
+- `ui/src/pages/__tests__/HarnessDemo.test.tsx` — 12 tests (rendering, navigation, keyboard, dots, CTA)
+
+### What was changed
+
+- `ui/src/App.tsx` — added `/harness` route and "Harness" nav link
+- `scripts/deploy.sh` — added empty `BUILD_NAME` guard before querying build status
+
+---
+
 ## Architecture Quality Pass
 
 **Date:** 2026-05-06

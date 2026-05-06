@@ -8,6 +8,7 @@ import ConfigureResults from "./pages/ConfigureResults";
 import Scoreboard from "./pages/Scoreboard";
 import Admin from "./pages/Admin";
 import KataDemo from "./pages/KataDemo";
+import HarnessDemo from "./pages/HarnessDemo";
 import Timer from "./components/Timer";
 
 function NavLink({ to, label }: { to: string; label: string }) {
@@ -41,6 +42,7 @@ export default function App() {
             <NavLink to="/" label="Exercises" />
             <NavLink to="/scoreboard" label="Scoreboard" />
             <NavLink to="/kata" label="Kata" />
+            <NavLink to="/harness" label="Harness" />
             <NavLink to="/admin" label="Admin" />
           </nav>
         </div>
@@ -56,6 +58,7 @@ export default function App() {
           <Route path="/configure/results" element={<ConfigureResults />} />
           <Route path="/scoreboard" element={<Scoreboard />} />
           <Route path="/kata" element={<KataDemo />} />
+          <Route path="/harness" element={<HarnessDemo />} />
           <Route path="/admin" element={<Admin />} />
         </Routes>
       </main>

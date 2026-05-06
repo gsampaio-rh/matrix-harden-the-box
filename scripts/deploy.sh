@@ -36,6 +36,11 @@ if [[ "$BUILD_ENABLED" == "true" ]]; then
     -n "$NAMESPACE" --sort-by=.metadata.creationTimestamp \
     -o jsonpath='{.items[-1:].metadata.name}' 2>/dev/null || true)
 
+  if [[ -z "$BUILD_NAME" ]]; then
+    echo "ERROR: No builds found for buildconfig/harden-the-box in namespace $NAMESPACE"
+    exit 1
+  fi
+
   BUILD_STATUS=$(oc get "build/$BUILD_NAME" -n "$NAMESPACE" \
     -o jsonpath='{.status.phase}' 2>/dev/null || true)
   if [[ "$BUILD_STATUS" != "Complete" ]]; then
