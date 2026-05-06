@@ -1,5 +1,51 @@
 # Changelog: Harden the Box
 
+## Architecture Quality Pass
+
+**Date:** 2026-05-06
+**Status:** Complete
+
+Fixed 3 bugs, closed 6 consistency gaps, hardened the API, improved accessibility, and added test coverage across the multi-chapter platform.
+
+### Key Outcomes
+
+- **105 backend tests** (up from 93) and **74 frontend tests** (up from 48) — all passing
+- Zero TypeScript errors, zero lint warnings introduced
+- All API responses now use consistent `team` field (was mixed `team`/`team_id`)
+- Team ID normalization applied across all 6 path-param handlers — case-insensitive matching
+- Typed Pydantic model for configure limits replaces raw `dict` — malformed payloads return 422
+- ARIA roles and keyboard support added to all interactive components
+
+### Bugs Fixed (P0)
+
+- `ConfigureExercise.tsx`: `setSubmitting(false)` now called on success path (was stuck in submitting state)
+- Null limits no longer silently coerced to most-permissive defaults (`max_turns: 100`, `bash_timeout: 120000`) — nulls flow through and score 0
+- Dead keyword `contradict.*stop` removed from anti-override list (substring matching, not regex — would never match)
+- Replay infinite loop vector check now enforces `10 <= max_turns <= 30` (was missing lower bound — `max_turns: 5` incorrectly counted as blocked)
+
+### Consistency Gaps Closed (P1)
+
+- Team ID normalized (`.strip().lower()`) in contain, configure, teams, and scores routers
+- Response field standardized to `team` in register, admin list, and WebSocket broadcast
+- `GET /api/scores/{team_id}` returns 404 for unregistered teams (was 200 with "No scores yet")
+- `CONFIGURE_MAX_SCORE` imported from `configure_scoring.MAX_SCORE` (was duplicated)
+- Timer check added to `ConfigureExercise.tsx` (matches `HardenConfig.tsx` pattern)
+- `ws.disconnect()` wrapped in try/except for double-disconnect safety
+- Achievement ordering stabilized with `dict.fromkeys()` (was `set()` — arbitrary order)
+
+### Hardening (P2)
+
+- `ConfigureLimits` Pydantic model enforces typed limits (`int | None`, `bool`)
+- Silent `.catch(() => {})` replaced with `console.error` or user-visible error states
+- ARIA: `tablist`/`tab`/`tabpanel` on CrimeScene and SkillEditor, `role="switch"` + `aria-checked` on toggle, `role="button"` + `aria-expanded` + keyboard handler on Scoreboard rows, `htmlFor`/`id` on ConstitutionEditor labels, `tabIndex`/`onFocus`/`onBlur` on annotations
+
+### Tests Added (P3)
+
+- **Backend (12 new):** team ID normalization (4), unknown team 404 on scores, first_submission exclusivity, partial config intermediate score, malformed body 422 (3), ws disconnect safety, max_turns lower bound
+- **Frontend (26 new):** Dashboard (6), ConfigureExercise (7), ConfigureResults (7), Scoreboard (6)
+
+---
+
 ## Roadmap Update — All Sprints Complete, Board Cleared
 
 **Date:** 2026-05-06
