@@ -1,5 +1,13 @@
 # Changelog: Harden the Box
 
+## Roadmap Update — All Sprints Complete, Board Cleared
+
+**Date:** 2026-05-06
+
+Moved **Polish & Workshop Integration** (Sprint 5.2) to **Future Explorations** in PLAN.md. No active sprints remain — all delivered features are documented below.
+
+---
+
 ## Roadmap Update — Descoped Sprints 5.2/5.3
 
 **Date:** 2026-05-05
