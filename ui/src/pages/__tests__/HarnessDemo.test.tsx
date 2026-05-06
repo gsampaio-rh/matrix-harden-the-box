@@ -15,7 +15,7 @@ describe("HarnessDemo page", () => {
   it("renders first step by default", () => {
     renderHarnessDemo();
     expect(screen.getByText("Configuration = Behavior")).toBeInTheDocument();
-    expect(screen.getByText("Step 1 of 6")).toBeInTheDocument();
+    expect(screen.getByText("Step 1 of 7")).toBeInTheDocument();
   });
 
   it("renders an SVG illustration", () => {
@@ -26,14 +26,14 @@ describe("HarnessDemo page", () => {
   it("advances step on Next click", () => {
     renderHarnessDemo();
     fireEvent.click(screen.getByText("Next"));
-    expect(screen.getByText("Repository as Source of Truth")).toBeInTheDocument();
-    expect(screen.getByText("Step 2 of 6")).toBeInTheDocument();
+    expect(screen.getByText(/Infrastructure as Code/)).toBeInTheDocument();
+    expect(screen.getByText("Step 2 of 7")).toBeInTheDocument();
   });
 
   it("goes back on Back click", () => {
     renderHarnessDemo();
     fireEvent.click(screen.getByText("Next"));
-    expect(screen.getByText("Repository as Source of Truth")).toBeInTheDocument();
+    expect(screen.getByText(/Infrastructure as Code/)).toBeInTheDocument();
     fireEvent.click(screen.getByText("Back"));
     expect(screen.getByText("Configuration = Behavior")).toBeInTheDocument();
   });
@@ -47,7 +47,7 @@ describe("HarnessDemo page", () => {
   it("navigates forward with ArrowRight key", () => {
     renderHarnessDemo();
     fireEvent.keyDown(window, { key: "ArrowRight" });
-    expect(screen.getByText("Repository as Source of Truth")).toBeInTheDocument();
+    expect(screen.getByText(/Infrastructure as Code/)).toBeInTheDocument();
   });
 
   it("navigates backward with ArrowLeft key", () => {
@@ -62,19 +62,19 @@ describe("HarnessDemo page", () => {
     for (let i = 0; i < 10; i++) {
       fireEvent.keyDown(window, { key: "ArrowRight" });
     }
-    expect(screen.getByText("Step 6 of 6")).toBeInTheDocument();
+    expect(screen.getByText("Step 7 of 7")).toBeInTheDocument();
     expect(screen.getByText("Self-Evaluation is Broken")).toBeInTheDocument();
   });
 
   it("does not go before the first step", () => {
     renderHarnessDemo();
     fireEvent.keyDown(window, { key: "ArrowLeft" });
-    expect(screen.getByText("Step 1 of 6")).toBeInTheDocument();
+    expect(screen.getByText("Step 1 of 7")).toBeInTheDocument();
   });
 
   it("shows Start the Exercise link on the last step", () => {
     renderHarnessDemo();
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 6; i++) {
       fireEvent.click(screen.getByText("Next"));
     }
     const link = screen.getByText("Start the Exercise");
@@ -82,11 +82,12 @@ describe("HarnessDemo page", () => {
     expect(link.closest("a")).toHaveAttribute("href", "/configure/exercise");
   });
 
-  it("renders all six steps sequentially", () => {
+  it("renders all seven steps sequentially", () => {
     renderHarnessDemo();
     const titles = [
       "Configuration = Behavior",
-      "Repository as Source of Truth",
+      "Infrastructure as Code — for Agents",
+      "Anatomy of a Harness",
       "Map, Not Encyclopedia",
       "Brain vs Hands",
       "Circuit Breakers",
@@ -103,9 +104,9 @@ describe("HarnessDemo page", () => {
   it("clicking step indicator dots navigates to that step", () => {
     renderHarnessDemo();
     const dots = screen.getAllByRole("button", { name: /Go to step/ });
-    expect(dots).toHaveLength(6);
-    fireEvent.click(dots[4]);
+    expect(dots).toHaveLength(7);
+    fireEvent.click(dots[5]);
     expect(screen.getByText("Circuit Breakers")).toBeInTheDocument();
-    expect(screen.getByText("Step 5 of 6")).toBeInTheDocument();
+    expect(screen.getByText("Step 6 of 7")).toBeInTheDocument();
   });
 });

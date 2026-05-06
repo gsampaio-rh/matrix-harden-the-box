@@ -3,83 +3,94 @@ interface Props {
 }
 
 export default function HarnessBrain({ className = "" }: Props) {
+  const tools = [
+    { label: "bash / shell", desc: "run commands" },
+    { label: "filesystem", desc: "read / write files" },
+    { label: "network / HTTP", desc: "external requests" },
+    { label: "subprocess", desc: "spawn processes" },
+  ];
+
   return (
-    <svg viewBox="0 0 400 220" className={className} xmlns="http://www.w3.org/2000/svg">
-      {/* Brain (LLM) — left side */}
-      <rect x="30" y="40" width="140" height="130" rx="10" fill="none"
-        stroke="var(--chapter-configure)" strokeWidth="2" opacity="0.8" />
-      <text x="100" y="30" textAnchor="middle" fill="var(--chapter-configure)"
-        fontSize="9" fontFamily="monospace" fontWeight="bold">BRAIN</text>
+    <svg viewBox="0 0 480 250" className={className} xmlns="http://www.w3.org/2000/svg">
+      {/* Column labels */}
+      <text x="110" y="18" textAnchor="middle" fill="var(--chapter-configure)"
+        fontSize="10" fontFamily="monospace" fontWeight="bold" opacity="0.9">BRAIN</text>
+      <text x="370" y="18" textAnchor="middle" fill="var(--matrix-green)"
+        fontSize="10" fontFamily="monospace" fontWeight="bold" opacity="0.9">HANDS</text>
 
-      <circle cx="100" cy="95" r="30" fill="none"
-        stroke="var(--chapter-configure)" strokeWidth="1.5" opacity="0.5" />
-      <text x="100" y="92" textAnchor="middle" fill="var(--chapter-configure)"
-        fontSize="10" fontFamily="monospace" fontWeight="bold">LLM</text>
-      <text x="100" y="104" textAnchor="middle" fill="var(--chapter-configure)"
-        fontSize="6" fontFamily="monospace" opacity="0.6">reasoning</text>
+      {/* Brain box */}
+      <rect x="20" y="28" width="180" height="160" rx="10" fill="none"
+        stroke="var(--chapter-configure)" strokeWidth="2" opacity="0.7" />
 
-      <text x="100" y="145" textAnchor="middle" fill="var(--matrix-green)"
-        fontSize="7" fontFamily="monospace" opacity="0.6">plans · decides · evaluates</text>
-      <text x="100" y="158" textAnchor="middle" fill="var(--matrix-green)"
-        fontSize="7" fontFamily="monospace" opacity="0.6">reads instructions</text>
+      {/* LLM circle */}
+      <circle cx="110" cy="95" r="36" fill="none"
+        stroke="var(--chapter-configure)" strokeWidth="1.5" opacity="0.4" />
+      <text x="110" y="92" textAnchor="middle" fill="var(--chapter-configure)"
+        fontSize="12" fontFamily="monospace" fontWeight="bold">LLM</text>
+      <text x="110" y="106" textAnchor="middle" fill="var(--chapter-configure)"
+        fontSize="7" fontFamily="monospace" opacity="0.5">reasoning</text>
 
-      {/* Separator */}
-      <line x1="195" y1="35" x2="195" y2="180" stroke="var(--matrix-border)"
-        strokeWidth="1" strokeDasharray="4 4" opacity="0.4" />
+      {/* Brain descriptors */}
+      <text x="110" y="150" textAnchor="middle" fill="var(--matrix-green)"
+        fontSize="7.5" fontFamily="monospace" opacity="0.7">plans · decides · evaluates</text>
+      <text x="110" y="164" textAnchor="middle" fill="var(--matrix-green)"
+        fontSize="7.5" fontFamily="monospace" opacity="0.7">reads instructions</text>
 
-      {/* Bidirectional arrows */}
-      <line x1="170" y1="80" x2="220" y2="80" stroke="var(--matrix-yellow)"
-        strokeWidth="1.5" opacity="0.6" />
-      <polygon points="220,80 214,76 214,84" fill="var(--matrix-yellow)" opacity="0.6" />
-      <line x1="220" y1="110" x2="170" y2="110" stroke="var(--matrix-yellow)"
-        strokeWidth="1.5" opacity="0.6" />
-      <polygon points="170,110 176,106 176,114" fill="var(--matrix-yellow)" opacity="0.6" />
-      <text x="195" y="100" textAnchor="middle" fill="var(--matrix-yellow)"
-        fontSize="6" fontFamily="monospace" opacity="0.5">tool calls</text>
+      {/* Separator line */}
+      <line x1="240" y1="28" x2="240" y2="188"
+        stroke="var(--matrix-border)" strokeWidth="1" strokeDasharray="4 4" opacity="0.3" />
 
-      {/* Hands (Tools) — right side */}
-      <rect x="230" y="40" width="140" height="130" rx="10" fill="none"
-        stroke="var(--matrix-green)" strokeWidth="2" opacity="0.8" />
-      <text x="300" y="30" textAnchor="middle" fill="var(--matrix-green)"
-        fontSize="9" fontFamily="monospace" fontWeight="bold">HANDS</text>
+      {/* Forward arrow: brain → hands */}
+      <line x1="200" y1="78" x2="278" y2="78"
+        stroke="var(--matrix-yellow)" strokeWidth="2" opacity="0.7" />
+      <polygon points="278,78 270,73 270,83" fill="var(--matrix-yellow)" opacity="0.7" />
 
-      {/* Tool boxes with attack surface markers */}
-      <rect x="245" y="55" width="110" height="22" rx="3" fill="none"
-        stroke="var(--matrix-green)" strokeWidth="1" opacity="0.7" />
-      <text x="300" y="69" textAnchor="middle" fill="var(--matrix-green)"
-        fontSize="7" fontFamily="monospace">bash / shell</text>
-      <circle cx="362" cy="66" r="4" fill="var(--matrix-red)" opacity="0.6" />
+      {/* Label */}
+      <text x="240" y="100" textAnchor="middle" fill="var(--matrix-yellow)"
+        fontSize="8" fontFamily="monospace" opacity="0.7">tool calls</text>
 
-      <rect x="245" y="85" width="110" height="22" rx="3" fill="none"
-        stroke="var(--matrix-green)" strokeWidth="1" opacity="0.7" />
-      <text x="300" y="99" textAnchor="middle" fill="var(--matrix-green)"
-        fontSize="7" fontFamily="monospace">filesystem</text>
-      <circle cx="362" cy="96" r="4" fill="var(--matrix-red)" opacity="0.6" />
+      {/* Return arrow: hands → brain */}
+      <line x1="278" y1="118" x2="200" y2="118"
+        stroke="var(--matrix-yellow)" strokeWidth="2" opacity="0.7" />
+      <polygon points="200,118 208,113 208,123" fill="var(--matrix-yellow)" opacity="0.7" />
 
-      <rect x="245" y="115" width="110" height="22" rx="3" fill="none"
-        stroke="var(--matrix-green)" strokeWidth="1" opacity="0.7" />
-      <text x="300" y="129" textAnchor="middle" fill="var(--matrix-green)"
-        fontSize="7" fontFamily="monospace">network / HTTP</text>
-      <circle cx="362" cy="126" r="4" fill="var(--matrix-red)" opacity="0.6" />
+      {/* Hands box */}
+      <rect x="290" y="28" width="170" height="160" rx="10" fill="none"
+        stroke="var(--matrix-green)" strokeWidth="2" opacity="0.7" />
 
-      <rect x="245" y="145" width="110" height="22" rx="3" fill="none"
-        stroke="var(--matrix-green)" strokeWidth="1" opacity="0.7" />
-      <text x="300" y="159" textAnchor="middle" fill="var(--matrix-green)"
-        fontSize="7" fontFamily="monospace">subprocess</text>
-      <circle cx="362" cy="156" r="4" fill="var(--matrix-red)" opacity="0.6" />
+      {/* Tool rows */}
+      {tools.map((tool, i) => {
+        const y = 42 + i * 36;
+        return (
+          <g key={tool.label}>
+            <rect x="302" y={y} width="130" height="28" rx="4" fill="none"
+              stroke="var(--matrix-green)" strokeWidth="1" opacity="0.6" />
+            <text x="367" y={y + 14} textAnchor="middle" fill="var(--matrix-green)"
+              fontSize="8" fontFamily="monospace" fontWeight="bold" opacity="0.9">
+              {tool.label}
+            </text>
+            <text x="367" y={y + 24} textAnchor="middle" fill="var(--matrix-green)"
+              fontSize="6" fontFamily="monospace" opacity="0.4">
+              {tool.desc}
+            </text>
+            {/* Attack surface dot */}
+            <circle cx="440" cy={y + 14} r="5" fill="var(--matrix-red)" opacity="0.6" />
+          </g>
+        );
+      })}
 
-      {/* Attack surface legend */}
-      <circle cx="370" cy="185" r="4" fill="var(--matrix-red)" opacity="0.6" />
-      <text x="378" y="188" fill="var(--matrix-red)"
-        fontSize="6" fontFamily="monospace" opacity="0.5">= attack surface</text>
+      {/* Legend */}
+      <circle cx="302" cy="200" r="4" fill="var(--matrix-red)" opacity="0.6" />
+      <text x="310" y="203" fill="var(--matrix-red)"
+        fontSize="7" fontFamily="monospace" opacity="0.5">= attack surface</text>
 
-      {/* Bottom label */}
-      <text x="200" y="200" textAnchor="middle" fill="var(--chapter-configure)"
-        fontSize="8" fontFamily="monospace" opacity="0.7">
+      {/* Bottom labels */}
+      <text x="240" y="224" textAnchor="middle" fill="var(--chapter-configure)"
+        fontSize="8" fontFamily="monospace" fontWeight="bold" opacity="0.8">
         EACH TOOL IS A POTENTIAL ATTACK VECTOR
       </text>
-      <text x="200" y="213" textAnchor="middle" fill="var(--matrix-border)"
-        fontSize="7" fontFamily="monospace" opacity="0.4">
+      <text x="240" y="240" textAnchor="middle" fill="var(--matrix-green)"
+        fontSize="7" fontFamily="monospace" opacity="0.5">
         the sandbox boundary is where trust ends
       </text>
     </svg>

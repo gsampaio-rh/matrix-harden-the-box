@@ -1,5 +1,35 @@
 # Changelog: Harden the Box
 
+## Harness Slide Deck — Visual Polish + Anatomy Slide
+
+**Date:** 2026-05-06
+**Status:** Complete
+
+### Key Outcomes
+
+- Added 7th slide "Anatomy of a Harness" — explains the four layers (CLAUDE.md, skills, hooks, NOT AI) and WHY they're separated (different trust models)
+- Redesigned all 6 SVG illustrations for better readability: larger viewBox, bigger fonts, more spacing, no element overlap
+- "Map, Not Encyclopedia" now shows real CLAUDE.md content (good vs bad) with interactive click-to-expand
+- "Brain vs Hands" wider gap between boxes, longer arrows, breathing room for "tool calls" label
+- "Self-Evaluation is Broken" text updated with concrete example and Anthropic research data (92% self-grade vs 64% actual)
+- "Infrastructure as Code" three-column redesign with stronger red/green contrast
+- HarnessConfig spacing/sizing fixes for CLAUDE.md box entries
+- Updated tests for 7 slides — 86 frontend tests passing
+
+### Slides (updated)
+
+| Step | Title | Concept |
+|------|-------|---------|
+| 1 | Configuration = Behavior | Config files control the agent; whoever writes the config controls the agent |
+| 2 | Infrastructure as Code — for Agents | K8s IaC parallel: treat agent config with the same rigor as cluster YAML |
+| 3 | Anatomy of a Harness | Four layers with different trust models: advisory → on-demand → enforced → no LLM |
+| 4 | Map, Not Encyclopedia | Real good/bad examples with click-to-expand; 5 clear rules beat 500 vague suggestions |
+| 5 | Brain vs Hands | LLM reasoning is separate from tools; each tool is an attack surface |
+| 6 | Circuit Breakers | Max turns, timeouts, env scrub prevent runaway behavior |
+| 7 | Self-Evaluation is Broken | Agents self-grade 92% success vs 64% actual; need external verification |
+
+---
+
 ## Harness Engineering Slide Deck + Deploy Fix
 
 **Date:** 2026-05-06
@@ -14,20 +44,9 @@
 - 86 frontend tests passing (up from 74) — 12 new tests for HarnessDemo
 - Fixed deploy script bug: empty `BUILD_NAME` guard prevents misleading error messages
 
-### Slides
-
-| Step | Title | Concept |
-|------|-------|---------|
-| 1 | Configuration = Behavior | Config files control the agent; whoever writes the config controls the agent |
-| 2 | Repository as Source of Truth | If it's not in the repo, the agent doesn't know about it |
-| 3 | Map, Not Encyclopedia | CLAUDE.md should be concise (~80-100 lines); skills handle depth |
-| 4 | Brain vs Hands | LLM reasoning is separate from tools; each tool is an attack surface |
-| 5 | Circuit Breakers | Max turns, timeouts, env scrub prevent runaway behavior |
-| 6 | Self-Evaluation is Broken | Agents can't reliably judge their own work; need external verification |
-
 ### What was added
 
-- `ui/src/pages/HarnessDemo.tsx` — 6-step slide deck with keyboard support and fade transitions
+- `ui/src/pages/HarnessDemo.tsx` — 7-step slide deck with keyboard support and fade transitions
 - `ui/src/components/illustrations/HarnessConfig.tsx` — config-to-agent flow diagram
 - `ui/src/components/illustrations/HarnessRepo.tsx` — context window with visible/invisible files
 - `ui/src/components/illustrations/HarnessMap.tsx` — concise map vs bloated encyclopedia

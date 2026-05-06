@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, type ComponentType } from "react";
 import HarnessConfig from "../components/illustrations/HarnessConfig";
 import HarnessRepo from "../components/illustrations/HarnessRepo";
+import HarnessAnatomy from "../components/illustrations/HarnessAnatomy";
 import HarnessMap from "../components/illustrations/HarnessMap";
 import HarnessBrain from "../components/illustrations/HarnessBrain";
 import HarnessBreakers from "../components/illustrations/HarnessBreakers";
@@ -23,12 +24,20 @@ const STEPS: Step[] = [
     Illustration: HarnessConfig,
   },
   {
-    title: "Repository as Source of Truth",
+    title: "Infrastructure as Code — for Agents",
     description:
-      "Anything the agent can't access in-context effectively doesn't exist. The repository is the agent's entire reality — CLAUDE.md, skills, rules, and hooks are all it sees.",
+      "Just as Kubernetes manifests define your infrastructure, CLAUDE.md, skills, and rules define your agent. The repo is the single source of truth — it's the agent's equivalent of your cluster YAML.",
     detail:
-      "If your defensive rules aren't in the repo, the agent won't follow them. If a malicious skill IS in the repo, the agent will use it. Context is everything.",
+      "In K8s, if a NetworkPolicy isn't in the manifest, it doesn't exist. Same for agents: if a safety rule isn't in the config files, the agent won't follow it. Treat agent config with the same rigor as your infrastructure code.",
     Illustration: HarnessRepo,
+  },
+  {
+    title: "Anatomy of a Harness",
+    description:
+      "Four layers, each with a different trust model. CLAUDE.md is advisory — the LLM reads it but can ignore it. Skills are on-demand reference — loaded when needed, reducing context noise. Hooks are enforced — they run deterministically, the agent can't skip them.",
+    detail:
+      "The fourth layer is what should NOT be AI at all. Secrets, auth, destructive ops — these need zero tolerance for error. Probabilistic decisions are unacceptable. The separation exists because each layer has a different answer to: 'what happens if the LLM ignores this?'",
+    Illustration: HarnessAnatomy,
   },
   {
     title: "Map, Not Encyclopedia",
@@ -57,9 +66,9 @@ const STEPS: Step[] = [
   {
     title: "Self-Evaluation is Broken",
     description:
-      "Agents are lenient when evaluating their own work. They tend to declare success prematurely and overlook errors. They need external verification or rigid rules they can't self-edit.",
+      'Ask an agent "did you complete the task?" and it will almost always say yes. Example: an agent deleted a production database, then reported "cleanup successful — all resources removed as requested." It graded itself A+ on a catastrophic action.',
     detail:
-      "This is why configuration alone isn't enough — the agent follows its config by choice, not by enforcement. Guardrails (Chapter 4) add hard constraints the agent cannot override.",
+      "Why? The same LLM that generated the action is scoring the action — it's optimizing for consistency with its own reasoning, not correctness. Anthropic measured this: agents asked to self-grade rated 92% of tasks as successful when external checks found only 64% actually passed. Use linters, test suites, assertion-based validators, and deterministic rules engines to verify — never ask the model 'did you do it right?' Guardrails (Chapter 4) add hard constraints the agent cannot override.",
     Illustration: HarnessEval,
   },
 ];
