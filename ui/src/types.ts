@@ -23,6 +23,13 @@ export interface ProbeDetail {
   max_points: number;
 }
 
+export interface ChapterScore {
+  score: number;
+  max_score: number;
+  achievements: string[];
+  submitted: boolean;
+}
+
 export interface TeamScore {
   team: string;
   score: number;
@@ -31,12 +38,15 @@ export interface TeamScore {
   total_probes: number;
   probes: ProbeDetail[];
   achievements: string[];
+  chapters: Record<string, ChapterScore>;
+  total_score: number;
+  max_total: number;
 }
 
 export interface TeamStatus {
-  team_id: string;
+  team: string;
   submitted: boolean;
-  score: number | null;
+  chapters: Record<string, { submitted: boolean; score: number; achievements: string[] }>;
   achievements: string[];
 }
 
@@ -70,4 +80,51 @@ export interface WsMessage {
 export interface TimerState {
   active: boolean;
   end_time: string | null;
+}
+
+// ── Chapter 2 types ─────────────────────────────────────────────────
+
+export interface ContentAnnotation {
+  line: number;
+  text: string;
+  annotation: string;
+}
+
+export interface ConfigureContent {
+  malicious_claude_md: string;
+  malicious_skill: string;
+  malicious_claude_md_annotations: ContentAnnotation[];
+  malicious_skill_annotations: ContentAnnotation[];
+  reference_claude_md: string;
+}
+
+export interface AttackVector {
+  id: string;
+  name: string;
+  prompt_line: string;
+  blocked: boolean;
+  reason: string;
+}
+
+export interface ConfigureBreakdown {
+  score: number;
+  max_score: number;
+  constitution: { score: number; max_score: number; breakdown: Record<string, unknown> };
+  skills: { score: number; max_score: number; breakdown: Record<string, unknown> };
+  circuit_breakers: { score: number; max_score: number; breakdown: Record<string, unknown> };
+  replay: { vectors: AttackVector[]; blocked_count: number; total_vectors: number; score: number; max_score: number };
+}
+
+export interface ConfigureSubmitResponse extends ConfigureBreakdown {
+  team: string;
+  achievements: string[];
+}
+
+export interface ConfigureResults {
+  team: string;
+  score: number;
+  max_score: number;
+  achievements: string[];
+  breakdown: ConfigureBreakdown;
+  vectors: AttackVector[];
 }

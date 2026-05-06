@@ -95,4 +95,40 @@ export const ACHIEVEMENTS: Record<
     description: "First team to submit defenses",
     howToEarn: "Be the first team to submit answers",
   },
+  constitutional_author: {
+    label: "Constitutional Author",
+    icon: "📜",
+    description: "All CLAUDE.md sections completed",
+    howToEarn: "Fill in all five CLAUDE.md sections with substantive content",
+  },
+  skill_crafter: {
+    label: "Skill Crafter",
+    icon: "🛠",
+    description: "Both skills have steps & boundaries",
+    howToEarn: "Write troubleshooting and escalation skills with steps and NEVER boundaries",
+  },
+  circuit_breaker: {
+    label: "Circuit Breaker",
+    icon: "⚡",
+    description: "All execution limits set safely",
+    howToEarn: "Set max turns 10-30, timeout 10-45s, and enable env scrub",
+  },
+  injection_resistant: {
+    label: "Injection Resistant",
+    icon: "🛡",
+    description: "Blocked 4+ attack vectors",
+    howToEarn: "Write config that blocks at least 4 of 6 prologue attack vectors",
+  },
+  concise_commander: {
+    label: "Concise Commander",
+    icon: "📐",
+    description: "CLAUDE.md under 80 lines",
+    howToEarn: "Keep your CLAUDE.md concise — map, not encyclopedia",
+  },
+  first_submission: {
+    label: "First Submission",
+    icon: "🏁",
+    description: "First team to complete Chapter 2",
+    howToEarn: "Be the first team to submit your playbook",
+  },
 };

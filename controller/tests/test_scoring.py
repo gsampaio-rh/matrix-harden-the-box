@@ -1,6 +1,6 @@
 from app.models import ScenarioAnswer
 from app.scenarios import SCENARIO_INDEX, SCENARIOS
-from app.services.scoring import (
+from app.services.contain_scoring import (
     ALL_PROBE_IDS,
     build_score_response,
     compute_achievements,

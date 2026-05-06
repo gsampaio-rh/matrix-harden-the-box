@@ -35,13 +35,13 @@ export default function Results() {
 
   useEffect(() => {
     if (!teamId) {
-      navigate("/");
+      navigate("/login");
       return;
     }
     api
       .getTeamResults(teamId)
       .then((res) => setResults(res as TeamResults))
-      .catch(() => navigate("/harden"))
+      .catch(() => navigate("/contain/exercise"))
       .finally(() => setLoading(false));
   }, [teamId, navigate]);
 

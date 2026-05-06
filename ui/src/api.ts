@@ -24,14 +24,14 @@ export const api = {
   getScenarios: () => request("/scenarios"),
 
   submitAnswers: (teamId: string, answers: ScenarioAnswer[]) =>
-    request(`/teams/${teamId}/submit`, {
+    request(`/contain/${teamId}/submit`, {
       method: "POST",
       body: JSON.stringify({ answers }),
     }),
 
   getTeamStatus: (teamId: string) => request(`/teams/${teamId}/status`),
 
-  getTeamResults: (teamId: string) => request(`/teams/${teamId}/results`),
+  getTeamResults: (teamId: string) => request(`/contain/results/${teamId}`),
 
   getLeaderboard: () => request("/scores"),
   getTeamScore: (teamId: string) => request(`/scores/${teamId}`),
@@ -49,4 +49,21 @@ export const api = {
   stopTimer: () => request("/admin/timer", { method: "DELETE" }),
 
   getTimer: () => request("/admin/timer"),
+
+  // ── Chapter 2 (Configure) ────────────────────────────────────────
+
+  getConfigureContent: () => request("/configure/content"),
+
+  submitConfigure: (payload: {
+    team_id: string;
+    sections: Record<string, string>;
+    skills: Record<string, string>;
+    limits: { max_turns: number | null; bash_timeout: number | null; env_scrub: boolean };
+  }) =>
+    request("/configure/submit", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  getConfigureResults: (teamId: string) => request(`/configure/results/${teamId}`),
 };

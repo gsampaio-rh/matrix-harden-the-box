@@ -40,7 +40,7 @@ export default function HardenConfig() {
   const [timerExpired, setTimerExpired] = useState(false);
 
   useEffect(() => {
-    if (!teamId) navigate("/");
+    if (!teamId) navigate("/login");
   }, [teamId, navigate]);
 
   useEffect(() => {
@@ -116,7 +116,7 @@ export default function HardenConfig() {
   };
 
   const handleAttackComplete = useCallback(() => {
-    navigate("/results");
+    navigate("/contain/results");
   }, [navigate]);
 
   if (attackData) {
@@ -143,7 +143,7 @@ export default function HardenConfig() {
           )}
           <div className="flex justify-center gap-3">
             <button
-              onClick={() => navigate("/results")}
+              onClick={() => navigate("/contain/results")}
               className="bg-[var(--matrix-green)] text-black font-bold px-8 py-3 rounded hover:brightness-110 transition"
             >
               View Results

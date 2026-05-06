@@ -5,7 +5,6 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from app import state
-from app.services.scoring import build_score_response
 from app.ws import manager
 
 logger = logging.getLogger(__name__)
@@ -23,25 +22,24 @@ async def reset_exercise():
 @router.get("/teams")
 async def list_teams():
     result = []
-    for team_id, _team in state.get_all_teams().items():
-        probes = state.get_scores(team_id)
-        pts = state.get_points(team_id)
-        achs = state.get_achievements(team_id)
-        if probes:
-            score_data = build_score_response(team_id, probes, pts, achs)
-            result.append({
-                "team_id": team_id,
-                "submitted": state.has_submitted(team_id),
-                "score": score_data["score"],
-                "achievements": achs,
-            })
-        else:
-            result.append({
-                "team_id": team_id,
-                "submitted": False,
-                "score": None,
-                "achievements": [],
-            })
+    for team_id in state.get_all_teams():
+        chapters = {}
+        for ch_name in state.CHAPTERS:
+            ch = state.get_chapter(team_id, ch_name)
+            chapters[ch_name] = {
+                "submitted": ch["submitted"] if ch else False,
+                "score": ch["score"] if ch else 0,
+                "achievements": ch["achievements"] if ch else [],
+            }
+
+        contain_ch = chapters.get("contain", {})
+        result.append({
+            "team": team_id,
+            "submitted": contain_ch.get("submitted", False),
+            "score": contain_ch.get("score", 0) if contain_ch.get("submitted") else None,
+            "achievements": contain_ch.get("achievements", []),
+            "chapters": chapters,
+        })
     return {"teams": result}
 
 

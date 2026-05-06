@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.routers import admin, scores, teams
+from app.routers import admin, configure, contain, scores, teams
 from app.scenarios import get_public_scenarios
 from app.ws import manager
 
@@ -25,7 +25,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Harden the Box — Exercise Controller",
-    version="0.2.0",
+    version="0.3.0",
     lifespan=lifespan,
 )
 
@@ -38,6 +38,8 @@ app.add_middleware(
 )
 
 app.include_router(teams.router, prefix="/api/teams", tags=["teams"])
+app.include_router(contain.router, prefix="/api/contain", tags=["contain"])
+app.include_router(configure.router, prefix="/api/configure", tags=["configure"])
 app.include_router(scores.router, prefix="/api/scores", tags=["scores"])
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 

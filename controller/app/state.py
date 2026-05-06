@@ -4,88 +4,162 @@ from datetime import datetime
 
 from app.models import ProbeResult, ScenarioAnswer
 
+CHAPTERS = ("contain", "configure")
+
 teams: dict[str, dict] = {}
-"""team_id -> {"submitted": bool}"""
-
-scores: dict[str, list[ProbeResult]] = {}
-"""team_id -> list of probe results from evaluation"""
-
-points: dict[str, int] = {}
-"""team_id -> total points earned"""
-
-achievements: dict[str, list[str]] = {}
-"""team_id -> list of achievement IDs"""
-
-submissions: dict[str, list[ScenarioAnswer]] = {}
-"""team_id -> raw answers submitted"""
+"""
+team_id -> {
+    "chapters": {
+        "contain":   {"submitted": False, "probes": None, "score": 0, "achievements": [], "submission": None},
+        "configure": {"submitted": False, "score": 0, "achievements": [], "submission": None, "breakdown": None, "vectors": None},
+    }
+}
+"""
 
 timer_end: datetime | None = None
-"""UTC timestamp when the hardening phase ends, None if no timer is active"""
 
-first_submission_team: str | None = None
-"""The first team to submit — earns 'First Blood'"""
+first_submission: dict[str, str | None] = {ch: None for ch in CHAPTERS}
+
+
+def _new_team() -> dict:
+    return {
+        "chapters": {
+            "contain": {
+                "submitted": False,
+                "probes": None,
+                "score": 0,
+                "achievements": [],
+                "submission": None,
+            },
+            "configure": {
+                "submitted": False,
+                "score": 0,
+                "achievements": [],
+                "submission": None,
+                "breakdown": None,
+                "vectors": None,
+            },
+        }
+    }
 
 
 def register_team(team_id: str) -> None:
     if team_id not in teams:
-        teams[team_id] = {"submitted": False}
+        teams[team_id] = _new_team()
 
 
 def get_team(team_id: str) -> dict | None:
     return teams.get(team_id)
 
 
-def has_submitted(team_id: str) -> bool:
+def get_chapter(team_id: str, chapter: str) -> dict | None:
     team = teams.get(team_id)
-    return team is not None and team.get("submitted", False)
+    if not team:
+        return None
+    return team["chapters"].get(chapter)
 
 
-def mark_submitted(team_id: str) -> None:
-    if team_id in teams:
-        teams[team_id]["submitted"] = True
+def has_submitted(team_id: str, chapter: str) -> bool:
+    ch = get_chapter(team_id, chapter)
+    return ch is not None and ch.get("submitted", False)
 
 
-def set_submission(team_id: str, answers: list[ScenarioAnswer]) -> None:
-    submissions[team_id] = answers
+def mark_submitted(team_id: str, chapter: str) -> None:
+    ch = get_chapter(team_id, chapter)
+    if ch is not None:
+        ch["submitted"] = True
 
 
-def get_submission(team_id: str) -> list[ScenarioAnswer] | None:
-    return submissions.get(team_id)
+# ── Contain-specific helpers ─────────────────────────────────────────
+
+def set_contain_submission(team_id: str, answers: list[ScenarioAnswer]) -> None:
+    ch = get_chapter(team_id, "contain")
+    if ch is not None:
+        ch["submission"] = answers
 
 
-def set_scores(team_id: str, probes: list[ProbeResult]) -> None:
-    scores[team_id] = probes
+def get_contain_submission(team_id: str) -> list[ScenarioAnswer] | None:
+    ch = get_chapter(team_id, "contain")
+    return ch["submission"] if ch else None
 
 
-def get_scores(team_id: str) -> list[ProbeResult] | None:
-    return scores.get(team_id)
+def set_contain_probes(team_id: str, probes: list[ProbeResult]) -> None:
+    ch = get_chapter(team_id, "contain")
+    if ch is not None:
+        ch["probes"] = probes
 
 
-def set_points(team_id: str, pts: int) -> None:
-    points[team_id] = pts
+def get_contain_probes(team_id: str) -> list[ProbeResult] | None:
+    ch = get_chapter(team_id, "contain")
+    return ch["probes"] if ch else None
 
 
-def get_points(team_id: str) -> int:
-    return points.get(team_id, 0)
+# ── Configure-specific helpers ───────────────────────────────────────
+
+def set_configure_submission(team_id: str, submission: dict) -> None:
+    ch = get_chapter(team_id, "configure")
+    if ch is not None:
+        ch["submission"] = submission
 
 
-def set_achievements(team_id: str, achs: list[str]) -> None:
-    achievements[team_id] = achs
+def get_configure_submission(team_id: str) -> dict | None:
+    ch = get_chapter(team_id, "configure")
+    return ch["submission"] if ch else None
 
 
-def get_achievements(team_id: str) -> list[str]:
-    return achievements.get(team_id, [])
+def set_configure_breakdown(team_id: str, breakdown: dict) -> None:
+    ch = get_chapter(team_id, "configure")
+    if ch is not None:
+        ch["breakdown"] = breakdown
+
+
+def get_configure_breakdown(team_id: str) -> dict | None:
+    ch = get_chapter(team_id, "configure")
+    return ch["breakdown"] if ch else None
+
+
+def set_configure_vectors(team_id: str, vectors: list[dict]) -> None:
+    ch = get_chapter(team_id, "configure")
+    if ch is not None:
+        ch["vectors"] = vectors
+
+
+def get_configure_vectors(team_id: str) -> list[dict] | None:
+    ch = get_chapter(team_id, "configure")
+    return ch["vectors"] if ch else None
+
+
+# ── Shared chapter helpers ───────────────────────────────────────────
+
+def set_score(team_id: str, chapter: str, pts: int) -> None:
+    ch = get_chapter(team_id, chapter)
+    if ch is not None:
+        ch["score"] = pts
+
+
+def get_score(team_id: str, chapter: str) -> int:
+    ch = get_chapter(team_id, chapter)
+    return ch["score"] if ch else 0
+
+
+def set_achievements(team_id: str, chapter: str, achs: list[str]) -> None:
+    ch = get_chapter(team_id, chapter)
+    if ch is not None:
+        ch["achievements"] = achs
+
+
+def get_achievements(team_id: str, chapter: str) -> list[str]:
+    ch = get_chapter(team_id, chapter)
+    return ch["achievements"] if ch else []
 
 
 def get_all_teams() -> dict[str, dict]:
     return teams
 
 
-def record_first_submission(team_id: str) -> bool:
-    """Record the first team to submit. Returns True if this team is first."""
-    global first_submission_team
-    if first_submission_team is None:
-        first_submission_team = team_id
+def record_first_submission(team_id: str, chapter: str) -> bool:
+    if first_submission.get(chapter) is None:
+        first_submission[chapter] = team_id
         return True
     return False
 
@@ -100,11 +174,8 @@ def get_timer() -> datetime | None:
 
 
 def clear_all() -> None:
-    global first_submission_team, timer_end
+    global timer_end
     teams.clear()
-    scores.clear()
-    points.clear()
-    achievements.clear()
-    submissions.clear()
-    first_submission_team = None
+    for ch in CHAPTERS:
+        first_submission[ch] = None
     timer_end = None

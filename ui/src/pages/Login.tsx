@@ -18,7 +18,7 @@ export default function Login() {
     try {
       await api.registerTeam(id);
       sessionStorage.setItem("teamId", id);
-      navigate("/harden");
+      navigate("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
     } finally {
@@ -33,7 +33,7 @@ export default function Login() {
           Enter the Matrix
         </h2>
         <p className="text-gray-400 text-sm mb-6 text-center">
-          Identify your team to begin hardening your pod
+          Identify your team to begin the exercises
         </p>
 
         {error && (

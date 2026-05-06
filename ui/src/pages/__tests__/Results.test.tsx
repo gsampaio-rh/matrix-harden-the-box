@@ -68,15 +68,15 @@ function renderResults() {
 describe("Results page", () => {
   it("redirects to / if no teamId in session", () => {
     renderResults();
-    expect(mockNavigate).toHaveBeenCalledWith("/");
+    expect(mockNavigate).toHaveBeenCalledWith("/login");
   });
 
-  it("redirects to /harden if API returns error (not submitted)", async () => {
+  it("redirects to /contain/exercise if API returns error (not submitted)", async () => {
     sessionStorage.setItem("teamId", "test-team");
     vi.mocked(api.getTeamResults).mockRejectedValue(new Error("404"));
     renderResults();
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/harden");
+      expect(mockNavigate).toHaveBeenCalledWith("/contain/exercise");
     });
   });
 

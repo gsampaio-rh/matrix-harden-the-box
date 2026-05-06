@@ -1,165 +1,153 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { api } from "../api";
-import { useWebSocket } from "../hooks/useWebSocket";
-import type { TeamStatus, WsMessage } from "../types";
-import Achievements from "../components/Achievements";
+
+interface AdminTeam {
+  team: string;
+  submitted: boolean;
+  score: number | null;
+  achievements: string[];
+  chapters: Record<string, { submitted: boolean; score: number; achievements: string[] }>;
+}
 
 export default function Admin() {
-  const [timerMinutes, setTimerMinutes] = useState(15);
-  const [teams, setTeams] = useState<TeamStatus[]>([]);
-  const [loading, setLoading] = useState<string | null>(null);
-  const [message, setMessage] = useState<{
-    type: "ok" | "err";
-    text: string;
-  } | null>(null);
+  const [teams, setTeams] = useState<AdminTeam[]>([]);
+  const [timerActive, setTimerActive] = useState(false);
+  const [duration, setDuration] = useState(20);
+  const [endTime, setEndTime] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
 
-  const fetchTeams = useCallback(async () => {
+  const refresh = async () => {
     try {
-      const res = (await api.listTeams()) as { teams: TeamStatus[] };
-      setTeams(res.teams);
-    } catch {
-      /* ignore */
+      const t = (await api.listTeams()) as { teams: AdminTeam[] };
+      setTeams(t.teams);
+      const timer = (await api.getTimer()) as { active: boolean; end_time: string | null };
+      setTimerActive(timer.active);
+      setEndTime(timer.end_time);
+    } catch (err) {
+      console.error("Failed to refresh admin data:", err);
     }
-  }, []);
+  };
 
   useEffect(() => {
-    fetchTeams();
-    const interval = setInterval(fetchTeams, 5000);
-    return () => clearInterval(interval);
-  }, [fetchTeams]);
+    refresh();
+  }, []);
 
-  const handleWs = useCallback(
-    (msg: WsMessage) => {
-      if (
-        msg.event === "team_joined" ||
-        msg.event === "score_updated" ||
-        msg.event === "exercise_reset"
-      ) {
-        fetchTeams();
-      }
-    },
-    [fetchTeams],
-  );
-
-  useWebSocket(handleWs);
-
-  const action = async (name: string, fn: () => Promise<unknown>) => {
-    setLoading(name);
-    setMessage(null);
+  const handleStartTimer = async () => {
     try {
-      await fn();
-      setMessage({ type: "ok", text: `${name} completed` });
-      fetchTeams();
+      await api.startTimer(duration);
+      setMessage(`Timer started: ${duration} min`);
+      refresh();
     } catch (err) {
-      setMessage({ type: "err", text: `${name} failed: ${err}` });
-    } finally {
-      setLoading(null);
+      setMessage(`Failed to start timer: ${err}`);
+    }
+  };
+
+  const handleStopTimer = async () => {
+    try {
+      await api.stopTimer();
+      setMessage("Timer stopped");
+      refresh();
+    } catch (err) {
+      setMessage(`Failed to stop timer: ${err}`);
+    }
+  };
+
+  const handleReset = async () => {
+    if (!confirm("Reset all data? This cannot be undone.")) return;
+    try {
+      await api.resetExercise();
+      setMessage("Exercise reset complete");
+      refresh();
+    } catch (err) {
+      setMessage(`Failed to reset: ${err}`);
     }
   };
 
   return (
-    <div className="space-y-6 max-w-3xl">
-      <h2 className="text-xl font-bold text-[var(--matrix-green)]">
-        Facilitator Controls
-      </h2>
+    <div className="max-w-4xl mx-auto space-y-8">
+      <h2 className="text-xl font-bold text-[var(--matrix-green)]">Facilitator Controls</h2>
 
       {message && (
-        <div
-          className={`text-sm p-3 rounded ${
-            message.type === "ok"
-              ? "bg-[var(--matrix-green)]/10 text-[var(--matrix-green)]"
-              : "bg-[var(--matrix-red)]/10 text-[var(--matrix-red)]"
-          }`}
-        >
-          {message.text}
+        <div className="bg-[var(--matrix-green)]/10 text-[var(--matrix-green)] text-sm px-4 py-2 rounded">
+          {message}
         </div>
       )}
 
-      <section className="bg-[var(--matrix-card)] border border-[var(--matrix-border)] rounded-lg p-5">
-        <h3 className="text-sm font-bold text-[var(--matrix-yellow)] uppercase tracking-wider mb-3">
-          Countdown Timer
-        </h3>
-        <div className="flex items-end gap-3">
-          <div>
-            <label className="block text-xs text-gray-400 mb-1">
-              Duration (minutes)
-            </label>
+      {/* Timer */}
+      <section className="bg-[var(--matrix-card)] border border-[var(--matrix-border)] rounded-lg p-5 space-y-3">
+        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Timer</h3>
+        {timerActive ? (
+          <div className="space-y-2">
+            <p className="text-sm text-gray-300">
+              Ends at: <span className="font-mono text-[var(--matrix-green)]">{endTime}</span>
+            </p>
+            <button onClick={handleStopTimer} className="bg-[var(--matrix-red)] text-white font-bold px-6 py-2 rounded hover:brightness-110 transition">
+              Stop Timer
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3">
             <input
               type="number"
+              value={duration}
+              onChange={(e) => setDuration(Number(e.target.value))}
               min={1}
-              max={60}
-              value={timerMinutes}
-              onChange={(e) => setTimerMinutes(Number(e.target.value))}
-              className="w-24 bg-[var(--matrix-dark)] border border-[var(--matrix-border)] rounded px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-[var(--matrix-green)]"
+              max={120}
+              className="w-20 bg-[var(--matrix-dark)] border border-[var(--matrix-border)] rounded px-3 py-2 text-sm text-gray-200 font-mono"
             />
+            <span className="text-sm text-gray-500">minutes</span>
+            <button onClick={handleStartTimer} className="bg-[var(--matrix-green)] text-black font-bold px-6 py-2 rounded hover:brightness-110 transition">
+              Start Timer
+            </button>
           </div>
-          <button
-            onClick={() =>
-              action("Timer", () => api.startTimer(timerMinutes))
-            }
-            disabled={!!loading}
-            className="bg-[var(--matrix-yellow)] text-black font-bold px-6 py-2 rounded text-sm hover:brightness-110 disabled:opacity-50"
-          >
-            {loading === "Timer" ? "Starting..." : "Start Timer"}
-          </button>
-          <button
-            onClick={() => action("Stop Timer", () => api.stopTimer())}
-            disabled={!!loading}
-            className="bg-gray-700 text-gray-200 font-bold px-6 py-2 rounded text-sm hover:bg-gray-600 disabled:opacity-50"
-          >
-            Stop
-          </button>
-        </div>
+        )}
       </section>
 
-      <section className="bg-[var(--matrix-card)] border border-[var(--matrix-border)] rounded-lg p-5">
-        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">
-          Reset
-        </h3>
-        <button
-          onClick={() => action("Reset", () => api.resetExercise())}
-          disabled={!!loading}
-          className="bg-gray-700 text-gray-200 font-bold px-6 py-2 rounded text-sm hover:bg-gray-600 disabled:opacity-50"
-        >
-          {loading === "Reset" ? "Resetting..." : "Reset Exercise"}
+      {/* Reset */}
+      <section className="bg-[var(--matrix-card)] border border-[var(--matrix-border)] rounded-lg p-5 space-y-3">
+        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Exercise Reset</h3>
+        <p className="text-xs text-gray-500">Clears all teams, scores, and timer.</p>
+        <button onClick={handleReset} className="bg-[var(--matrix-red)] text-white font-bold px-6 py-2 rounded hover:brightness-110 transition">
+          Reset All
         </button>
       </section>
 
-      <section>
-        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">
-          Teams ({teams.length})
-        </h3>
+      {/* Teams */}
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">
+            Teams ({teams.length})
+          </h3>
+          <button onClick={refresh} className="text-xs text-gray-500 hover:text-gray-300 underline">
+            Refresh
+          </button>
+        </div>
         {teams.length === 0 ? (
-          <p className="text-sm text-gray-500">
-            No teams yet — teams appear here as they join.
-          </p>
+          <p className="text-sm text-gray-500">No teams registered.</p>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+          <div className="space-y-2">
             {teams.map((t) => (
               <div
-                key={t.team_id}
-                className="bg-[var(--matrix-card)] border border-[var(--matrix-border)] rounded p-3"
+                key={t.team}
+                className="bg-[var(--matrix-card)] border border-[var(--matrix-border)] rounded-lg p-3"
               >
-                <div className="text-sm font-mono text-gray-200">
-                  {t.team_id}
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-bold text-gray-200">{t.team}</span>
                 </div>
-                <div className="flex items-center gap-2 mt-1">
-                  {t.submitted && (
-                    <span className="text-[10px] text-[var(--matrix-green)]">
-                      submitted
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="text-gray-500">Ch.1 Contain: </span>
+                    <span style={{ color: "var(--chapter-contain)" }}>
+                      {t.chapters?.contain?.submitted ? `${t.chapters.contain.score} pts` : "—"}
                     </span>
-                  )}
-                  {t.score !== null && (
-                    <span className="text-[10px] text-[var(--matrix-blue)]">
-                      {t.score} pts
-                    </span>
-                  )}
-                </div>
-                {t.achievements.length > 0 && (
-                  <div className="mt-1">
-                    <Achievements achievements={t.achievements} compact />
                   </div>
-                )}
+                  <div>
+                    <span className="text-gray-500">Ch.2 Configure: </span>
+                    <span style={{ color: "var(--chapter-configure)" }}>
+                      {t.chapters?.configure?.submitted ? `${t.chapters.configure.score} pts` : "—"}
+                    </span>
+                  </div>
+                </div>
               </div>
             ))}
           </div>

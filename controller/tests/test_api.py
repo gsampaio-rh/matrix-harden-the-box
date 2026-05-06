@@ -44,7 +44,7 @@ class TestRegister:
     async def test_register_team(self, client: AsyncClient):
         res = await register(client, "team-01")
         data = res.json()
-        assert data["team_id"] == "team-01"
+        assert data["team"] == "team-01"
         assert data["status"] == "registered"
 
     async def test_register_is_idempotent(self, client: AsyncClient):
@@ -57,7 +57,7 @@ class TestRegister:
     async def test_register_normalizes_name(self, client: AsyncClient):
         await register(client, "  Team-01 ")
         teams = await client.get("/api/admin/teams")
-        assert teams.json()["teams"][0]["team_id"] == "team-01"
+        assert teams.json()["teams"][0]["team"] == "team-01"
 
     async def test_register_empty_rejected(self, client: AsyncClient):
         res = await client.post("/api/teams/register", json={"team_id": "  "})
@@ -91,7 +91,7 @@ class TestSubmission:
     async def test_submit_best_answers(self, client: AsyncClient):
         await register(client, "team-01")
         res = await client.post(
-            "/api/teams/team-01/submit",
+            "/api/contain/team-01/submit",
             json={"answers": _best_answers()},
         )
         assert res.status_code == 200
@@ -104,7 +104,7 @@ class TestSubmission:
     async def test_submit_worst_answers_zero(self, client: AsyncClient):
         await register(client, "team-01")
         res = await client.post(
-            "/api/teams/team-01/submit",
+            "/api/contain/team-01/submit",
             json={"answers": _worst_answers()},
         )
         assert res.json()["score"] == 0
@@ -112,18 +112,18 @@ class TestSubmission:
     async def test_one_shot_enforcement(self, client: AsyncClient):
         await register(client, "team-01")
         await client.post(
-            "/api/teams/team-01/submit",
+            "/api/contain/team-01/submit",
             json={"answers": _worst_answers()},
         )
         res = await client.post(
-            "/api/teams/team-01/submit",
+            "/api/contain/team-01/submit",
             json={"answers": _best_answers()},
         )
         assert res.status_code == 409
 
     async def test_submit_404_unknown_team(self, client: AsyncClient):
         res = await client.post(
-            "/api/teams/team-99/submit",
+            "/api/contain/team-99/submit",
             json={"answers": []},
         )
         assert res.status_code == 404
@@ -131,7 +131,7 @@ class TestSubmission:
     async def test_submit_returns_achievements(self, client: AsyncClient):
         await register(client, "team-01")
         res = await client.post(
-            "/api/teams/team-01/submit",
+            "/api/contain/team-01/submit",
             json={"answers": _best_answers()},
         )
         data = res.json()
@@ -142,12 +142,12 @@ class TestSubmission:
         await register(client, "team-01")
         await register(client, "team-02")
         r1 = await client.post(
-            "/api/teams/team-01/submit",
+            "/api/contain/team-01/submit",
             json={"answers": _worst_answers()},
         )
         assert "first_blood" in r1.json()["achievements"]
         r2 = await client.post(
-            "/api/teams/team-02/submit",
+            "/api/contain/team-02/submit",
             json={"answers": _worst_answers()},
         )
         assert "first_blood" not in r2.json()["achievements"]
@@ -156,7 +156,7 @@ class TestSubmission:
         await register(client, "team-01")
         partial = [{"scenarioId": "net-egress", "selectedOption": "c"}]
         res = await client.post(
-            "/api/teams/team-01/submit",
+            "/api/contain/team-01/submit",
             json={"answers": partial},
         )
         data = res.json()
@@ -176,7 +176,7 @@ class TestTeamStatus:
     async def test_status_after_submit(self, client: AsyncClient):
         await register(client, "team-01")
         await client.post(
-            "/api/teams/team-01/submit",
+            "/api/contain/team-01/submit",
             json={"answers": _best_answers()},
         )
         res = await client.get("/api/teams/team-01/status")
@@ -188,24 +188,32 @@ class TestTeamStatus:
         res = await client.get("/api/teams/unknown/status")
         assert res.status_code == 404
 
+    async def test_status_has_chapter_breakdown(self, client: AsyncClient):
+        await register(client, "team-01")
+        res = await client.get("/api/teams/team-01/status")
+        data = res.json()
+        assert "chapters" in data
+        assert "contain" in data["chapters"]
+        assert "configure" in data["chapters"]
+
 
 class TestResults:
     async def test_results_404_unknown_team(self, client: AsyncClient):
-        res = await client.get("/api/teams/unknown/results")
+        res = await client.get("/api/contain/results/unknown")
         assert res.status_code == 404
 
     async def test_results_404_before_submit(self, client: AsyncClient):
         await register(client, "team-01")
-        res = await client.get("/api/teams/team-01/results")
+        res = await client.get("/api/contain/results/team-01")
         assert res.status_code == 404
 
     async def test_results_after_submit(self, client: AsyncClient):
         await register(client, "team-01")
         await client.post(
-            "/api/teams/team-01/submit",
+            "/api/contain/team-01/submit",
             json={"answers": _best_answers()},
         )
-        res = await client.get("/api/teams/team-01/results")
+        res = await client.get("/api/contain/results/team-01")
         assert res.status_code == 200
         data = res.json()
         assert data["team"] == "team-01"
@@ -216,10 +224,10 @@ class TestResults:
     async def test_results_scenario_shape(self, client: AsyncClient):
         await register(client, "team-01")
         await client.post(
-            "/api/teams/team-01/submit",
+            "/api/contain/team-01/submit",
             json={"answers": _best_answers()},
         )
-        res = await client.get("/api/teams/team-01/results")
+        res = await client.get("/api/contain/results/team-01")
         scenario = res.json()["scenarios"][0]
         assert "id" in scenario
         assert "category" in scenario
@@ -237,10 +245,10 @@ class TestResults:
     async def test_results_best_answers_all_correct(self, client: AsyncClient):
         await register(client, "team-01")
         await client.post(
-            "/api/teams/team-01/submit",
+            "/api/contain/team-01/submit",
             json={"answers": _best_answers()},
         )
-        res = await client.get("/api/teams/team-01/results")
+        res = await client.get("/api/contain/results/team-01")
         for scenario in res.json()["scenarios"]:
             assert scenario["is_best"] is True
             assert scenario["points_earned"] == scenario["max_points"]
@@ -248,10 +256,10 @@ class TestResults:
     async def test_results_worst_answers_none_correct(self, client: AsyncClient):
         await register(client, "team-01")
         await client.post(
-            "/api/teams/team-01/submit",
+            "/api/contain/team-01/submit",
             json={"answers": _worst_answers()},
         )
-        res = await client.get("/api/teams/team-01/results")
+        res = await client.get("/api/contain/results/team-01")
         for scenario in res.json()["scenarios"]:
             assert scenario["is_best"] is False
             assert scenario["points_earned"] == 0
@@ -262,23 +270,23 @@ class TestLeaderboard:
         await register(client, "team-01")
         await register(client, "team-02")
         await client.post(
-            "/api/teams/team-02/submit",
+            "/api/contain/team-02/submit",
             json={"answers": _best_answers()},
         )
         await client.post(
-            "/api/teams/team-01/submit",
+            "/api/contain/team-01/submit",
             json={"answers": _worst_answers()},
         )
         res = await client.get("/api/scores")
         teams = res.json()["teams"]
         assert teams[0]["team"] == "team-02"
-        assert teams[0]["score"] > teams[1]["score"]
+        assert teams[0]["total_score"] > teams[1]["total_score"]
 
     async def test_leaderboard_includes_unscored_teams(self, client: AsyncClient):
         await register(client, "team-01")
         await register(client, "team-02")
         await client.post(
-            "/api/teams/team-01/submit",
+            "/api/contain/team-01/submit",
             json={"answers": _worst_answers()},
         )
         res = await client.get("/api/scores")
@@ -287,19 +295,32 @@ class TestLeaderboard:
     async def test_team_score_endpoint(self, client: AsyncClient):
         await register(client, "team-01")
         await client.post(
-            "/api/teams/team-01/submit",
+            "/api/contain/team-01/submit",
             json={"answers": _best_answers()},
         )
         res = await client.get("/api/scores/team-01")
-        assert res.json()["score"] > 0
+        assert res.json()["total_score"] > 0
 
     async def test_team_score_before_submit(self, client: AsyncClient):
         await register(client, "team-01")
         res = await client.get("/api/scores/team-01")
         assert res.status_code == 200
         data = res.json()
-        assert data["score"] == 0
-        assert data["message"] == "No scores yet"
+        assert data["total_score"] == 0
+
+    async def test_team_score_404_unknown_team(self, client: AsyncClient):
+        res = await client.get("/api/scores/ghost")
+        assert res.status_code == 404
+
+    async def test_leaderboard_has_chapter_breakdown(self, client: AsyncClient):
+        await register(client, "team-01")
+        res = await client.get("/api/scores")
+        team = res.json()["teams"][0]
+        assert "chapters" in team
+        assert "contain" in team["chapters"]
+        assert "configure" in team["chapters"]
+        assert "total_score" in team
+        assert "max_total" in team
 
 
 class TestTimer:
@@ -336,7 +357,7 @@ class TestReset:
     async def test_reset_clears_everything(self, client: AsyncClient):
         await register(client, "team-01")
         await client.post(
-            "/api/teams/team-01/submit",
+            "/api/contain/team-01/submit",
             json={"answers": _best_answers()},
         )
         await client.post("/api/admin/timer", json={"duration_minutes": 10})
@@ -355,3 +376,49 @@ class TestHealthz:
         res = await client.get("/healthz")
         assert res.status_code == 200
         assert res.json()["status"] == "ok"
+
+
+class TestContainNormalization:
+    async def test_submit_with_different_casing(self, client: AsyncClient):
+        await register(client, "team-01")
+        res = await client.post(
+            "/api/contain/Team-01/submit",
+            json={"answers": _best_answers()},
+        )
+        assert res.status_code == 200
+        assert res.json()["team"] == "team-01"
+
+    async def test_results_with_different_casing(self, client: AsyncClient):
+        await register(client, "team-01")
+        await client.post(
+            "/api/contain/team-01/submit",
+            json={"answers": _best_answers()},
+        )
+        res = await client.get("/api/contain/results/Team-01")
+        assert res.status_code == 200
+        assert res.json()["team"] == "team-01"
+
+    async def test_status_with_different_casing(self, client: AsyncClient):
+        await register(client, "team-01")
+        res = await client.get("/api/teams/Team-01/status")
+        assert res.status_code == 200
+        assert res.json()["team"] == "team-01"
+
+    async def test_scores_with_different_casing(self, client: AsyncClient):
+        await register(client, "team-01")
+        res = await client.get("/api/scores/Team-01")
+        assert res.status_code == 200
+        assert res.json()["team"] == "team-01"
+
+
+class TestWsDisconnectSafety:
+    def test_double_disconnect_no_error(self):
+        from unittest.mock import AsyncMock
+        from app.ws import ConnectionManager
+
+        mgr = ConnectionManager()
+        fake_ws = AsyncMock()
+        mgr._connections.append(fake_ws)
+        mgr.disconnect(fake_ws)
+        mgr.disconnect(fake_ws)
+        assert fake_ws not in mgr._connections

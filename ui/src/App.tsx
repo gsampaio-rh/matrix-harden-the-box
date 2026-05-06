@@ -1,7 +1,10 @@
 import { Routes, Route, Link, useLocation } from "react-router-dom";
 import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
 import HardenConfig from "./pages/HardenConfig";
 import Results from "./pages/Results";
+import ConfigureExercise from "./pages/ConfigureExercise";
+import ConfigureResults from "./pages/ConfigureResults";
 import Scoreboard from "./pages/Scoreboard";
 import Admin from "./pages/Admin";
 import KataDemo from "./pages/KataDemo";
@@ -31,12 +34,11 @@ export default function App() {
 
       <header className="border-b border-[var(--matrix-border)] bg-[var(--matrix-bg)]">
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-14">
-          <h1 className="text-[var(--matrix-green)] font-bold text-lg tracking-wider">
-            HARDEN THE BOX
-          </h1>
+          <Link to="/" className="text-[var(--matrix-green)] font-bold text-lg tracking-wider hover:brightness-110 transition">
+            THE RED MATRIX
+          </Link>
           <nav className="flex gap-1">
-            <NavLink to="/" label="Login" />
-            <NavLink to="/harden" label="Harden" />
+            <NavLink to="/" label="Exercises" />
             <NavLink to="/scoreboard" label="Scoreboard" />
             <NavLink to="/kata" label="Kata" />
             <NavLink to="/admin" label="Admin" />
@@ -46,9 +48,12 @@ export default function App() {
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-6">
         <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/harden" element={<HardenConfig />} />
-          <Route path="/results" element={<Results />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/contain/exercise" element={<HardenConfig />} />
+          <Route path="/contain/results" element={<Results />} />
+          <Route path="/configure/exercise" element={<ConfigureExercise />} />
+          <Route path="/configure/results" element={<ConfigureResults />} />
           <Route path="/scoreboard" element={<Scoreboard />} />
           <Route path="/kata" element={<KataDemo />} />
           <Route path="/admin" element={<Admin />} />
@@ -56,7 +61,7 @@ export default function App() {
       </main>
 
       <footer className="border-t border-[var(--matrix-border)] py-3 text-center text-xs text-gray-600">
-        The Red Matrix — Harden the Box Exercise
+        The Red Matrix — Workshop Exercises
       </footer>
     </div>
   );
