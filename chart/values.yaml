@@ -6,6 +6,8 @@ port: 8080
 
 build:
   enabled: true
+  gitUri: https://github.com/gsampaio-rh/matrix-harden-the-box.git
+  gitRef: main
   dockerfilePath: build/Dockerfile
 
 resources:

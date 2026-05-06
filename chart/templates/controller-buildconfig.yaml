@@ -8,7 +8,10 @@ metadata:
     {{- include "htb.labels" . | nindent 4 }}
 spec:
   source:
-    type: Binary
+    type: Git
+    git:
+      uri: {{ .Values.build.gitUri }}
+      ref: {{ .Values.build.gitRef }}
   strategy:
     type: Docker
     dockerStrategy:
@@ -17,6 +20,8 @@ spec:
     to:
       kind: ImageStreamTag
       name: harden-the-box:latest
+  triggers:
+    - type: ConfigChange
   resources:
     limits:
       cpu: "1"

@@ -16,8 +16,8 @@ push: build ## Build and push the container image
 deploy: ## Deploy to OpenShift (Helm + build from source)
 	bash scripts/deploy.sh
 
-build-cluster: ## Trigger a new OpenShift build from local source
-	oc start-build harden-the-box --from-dir=. -n $${NAMESPACE:-workshop-content} --follow
+build-cluster: ## Trigger a new OpenShift build from Git source
+	oc start-build harden-the-box -n $${NAMESPACE:-workshop-content} --follow
 
 clean: ## Uninstall Helm release
 	helm uninstall harden-the-box -n workshop-content --ignore-not-found || true

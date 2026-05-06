@@ -29,11 +29,19 @@ BUILD_ENABLED=$(helm get values "$RELEASE" -n "$NAMESPACE" --all -o json 2>/dev/
   || echo "false")
 
 if [[ "$BUILD_ENABLED" == "true" ]]; then
-  echo "==> Starting OpenShift build (binary upload)..."
-  oc start-build harden-the-box \
-    --from-dir="$PROJECT_ROOT" \
-    -n "$NAMESPACE" \
-    --follow
+  echo "==> Starting OpenShift build from Git source..."
+  oc start-build harden-the-box -n "$NAMESPACE" --follow
+
+  BUILD_NAME=$(oc get builds -l buildconfig=harden-the-box \
+    -n "$NAMESPACE" --sort-by=.metadata.creationTimestamp \
+    -o jsonpath='{.items[-1:].metadata.name}' 2>/dev/null || true)
+
+  BUILD_STATUS=$(oc get "build/$BUILD_NAME" -n "$NAMESPACE" \
+    -o jsonpath='{.status.phase}' 2>/dev/null || true)
+  if [[ "$BUILD_STATUS" != "Complete" ]]; then
+    echo "ERROR: Build $BUILD_NAME finished with status: $BUILD_STATUS"
+    exit 1
+  fi
 
   echo "==> Waiting for rollout..."
   oc rollout status deployment/harden-the-box -n "$NAMESPACE" --timeout=180s
