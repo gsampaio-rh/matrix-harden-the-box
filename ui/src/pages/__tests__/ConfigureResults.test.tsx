@@ -60,7 +60,7 @@ import { api } from "../../api";
 
 beforeEach(() => {
   vi.clearAllMocks();
-  sessionStorage.clear();
+  localStorage.clear();
 });
 
 function renderConfigureResults() {
@@ -78,7 +78,7 @@ describe("ConfigureResults", () => {
   });
 
   it("redirects to /configure/exercise on API error", async () => {
-    sessionStorage.setItem("teamId", "team-01");
+    localStorage.setItem("teamId", "team-01");
     vi.mocked(api.getConfigureResults).mockRejectedValue(new Error("404"));
     vi.mocked(api.getConfigureContent).mockRejectedValue(new Error("404"));
     renderConfigureResults();
@@ -88,7 +88,7 @@ describe("ConfigureResults", () => {
   });
 
   it("renders score header", async () => {
-    sessionStorage.setItem("teamId", "team-01");
+    localStorage.setItem("teamId", "team-01");
     vi.mocked(api.getConfigureResults).mockResolvedValue(MOCK_RESULTS);
     vi.mocked(api.getConfigureContent).mockResolvedValue(MOCK_CONTENT);
     renderConfigureResults();
@@ -99,7 +99,7 @@ describe("ConfigureResults", () => {
   });
 
   it("renders section score cards", async () => {
-    sessionStorage.setItem("teamId", "team-01");
+    localStorage.setItem("teamId", "team-01");
     vi.mocked(api.getConfigureResults).mockResolvedValue(MOCK_RESULTS);
     vi.mocked(api.getConfigureContent).mockResolvedValue(MOCK_CONTENT);
     renderConfigureResults();
@@ -112,7 +112,7 @@ describe("ConfigureResults", () => {
   });
 
   it("renders attack vectors with blocked/passed status", async () => {
-    sessionStorage.setItem("teamId", "team-01");
+    localStorage.setItem("teamId", "team-01");
     vi.mocked(api.getConfigureResults).mockResolvedValue(MOCK_RESULTS);
     vi.mocked(api.getConfigureContent).mockResolvedValue(MOCK_CONTENT);
     renderConfigureResults();
@@ -127,7 +127,7 @@ describe("ConfigureResults", () => {
   });
 
   it("renders key insight callout", async () => {
-    sessionStorage.setItem("teamId", "team-01");
+    localStorage.setItem("teamId", "team-01");
     vi.mocked(api.getConfigureResults).mockResolvedValue(MOCK_RESULTS);
     vi.mocked(api.getConfigureContent).mockResolvedValue(MOCK_CONTENT);
     renderConfigureResults();
@@ -137,7 +137,7 @@ describe("ConfigureResults", () => {
   });
 
   it("renders reference CLAUDE.md", async () => {
-    sessionStorage.setItem("teamId", "team-01");
+    localStorage.setItem("teamId", "team-01");
     vi.mocked(api.getConfigureResults).mockResolvedValue(MOCK_RESULTS);
     vi.mocked(api.getConfigureContent).mockResolvedValue(MOCK_CONTENT);
     renderConfigureResults();

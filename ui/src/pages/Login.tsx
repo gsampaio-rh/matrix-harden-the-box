@@ -17,7 +17,7 @@ export default function Login() {
     setError(null);
     try {
       await api.registerTeam(id);
-      sessionStorage.setItem("teamId", id);
+      localStorage.setItem("teamId", id);
       navigate("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");

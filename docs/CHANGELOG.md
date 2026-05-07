@@ -1,5 +1,30 @@
 # Changelog: Harden the Box
 
+## Session Persistence — Tab Close + Pod Restart
+
+**Date:** 2026-05-07
+**Status:** Complete
+
+### Key Outcomes
+
+- Team sessions now survive tab close: switched `sessionStorage` → `localStorage` across all 12 frontend files
+- Team data now survives pod restarts: atomic JSON snapshots to PVC-backed `/app/data/state.json`
+- Graceful degradation: if no PVC is mounted, continues in-memory with a logged warning
+- 117 backend tests (11 new for persistence), 86 frontend tests — all passing
+- Added admin auth backlog item to PLAN.md
+
+### What changed
+
+- **Frontend** (7 pages + 5 test files): `sessionStorage` → `localStorage` — team identity persists across tabs and browser closes
+- **Backend**: new `controller/app/persistence.py` — `save_snapshot()` writes atomically (`.tmp` → `rename`), `load_snapshot()` restores on startup
+- **Backend**: `controller/app/state.py` — every mutation calls `_persist()`, new `restore_from_snapshot()` for startup
+- **Backend**: `controller/app/main.py` — lifespan loads snapshot if available
+- **Helm**: new `chart/templates/controller-pvc.yaml` (100Mi PVC, conditional on `persistence.enabled`)
+- **Helm**: `controller-deployment.yaml` — volumeMount `/app/data` + `HTB_DATA_DIR` env var
+- **Helm**: `values.yaml` — `persistence.enabled: true`, `persistence.size: 100Mi`
+
+---
+
 ## Harness Slide Deck — Visual Polish + Anatomy Slide
 
 **Date:** 2026-05-06

@@ -19,7 +19,7 @@ import { api } from "../../api";
 
 beforeEach(() => {
   vi.clearAllMocks();
-  sessionStorage.clear();
+  localStorage.clear();
 });
 
 function renderDashboard() {
@@ -37,7 +37,7 @@ describe("Dashboard", () => {
   });
 
   it("renders chapter cards when teamId is set", async () => {
-    sessionStorage.setItem("teamId", "team-01");
+    localStorage.setItem("teamId", "team-01");
     vi.mocked(api.getTeamStatus).mockResolvedValue({
       team: "team-01",
       chapters: {
@@ -53,7 +53,7 @@ describe("Dashboard", () => {
   });
 
   it("shows Start Exercise for unsubmitted chapters", async () => {
-    sessionStorage.setItem("teamId", "team-01");
+    localStorage.setItem("teamId", "team-01");
     vi.mocked(api.getTeamStatus).mockResolvedValue({
       team: "team-01",
       chapters: {
@@ -69,7 +69,7 @@ describe("Dashboard", () => {
   });
 
   it("shows View Results for submitted chapters", async () => {
-    sessionStorage.setItem("teamId", "team-01");
+    localStorage.setItem("teamId", "team-01");
     vi.mocked(api.getTeamStatus).mockResolvedValue({
       team: "team-01",
       chapters: {
@@ -85,7 +85,7 @@ describe("Dashboard", () => {
   });
 
   it("shows Coming Soon placeholder", async () => {
-    sessionStorage.setItem("teamId", "team-01");
+    localStorage.setItem("teamId", "team-01");
     vi.mocked(api.getTeamStatus).mockResolvedValue({
       team: "team-01",
       chapters: {
@@ -100,7 +100,7 @@ describe("Dashboard", () => {
   });
 
   it("displays the team name", () => {
-    sessionStorage.setItem("teamId", "team-01");
+    localStorage.setItem("teamId", "team-01");
     vi.mocked(api.getTeamStatus).mockResolvedValue({
       team: "team-01",
       chapters: {},

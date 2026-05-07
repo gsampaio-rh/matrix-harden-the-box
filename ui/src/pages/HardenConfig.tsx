@@ -29,7 +29,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 export default function HardenConfig() {
   const navigate = useNavigate();
-  const teamId = sessionStorage.getItem("teamId");
+  const teamId = localStorage.getItem("teamId");
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [step, setStep] = useState(0);

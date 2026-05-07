@@ -18,7 +18,7 @@ const STEP_LABELS = [
 
 export default function ConfigureExercise() {
   const navigate = useNavigate();
-  const teamId = sessionStorage.getItem("teamId");
+  const teamId = localStorage.getItem("teamId");
 
   const [step, setStep] = useState(0);
   const [content, setContent] = useState<ConfigureContent | null>(null);

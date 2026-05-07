@@ -9,6 +9,12 @@
 
 Conventions: `[ ]` = pending | `[!]` = blocked | **Gate** = required criterion
 
+## Backlog
+
+- [ ] **Admin authentication** — protect `/api/admin/*` endpoints (reset, timer) with a password or API key. Currently anyone can reset all data or start/stop the timer. Use env var `HTB_ADMIN_PASSWORD` and require it via header (`X-Admin-Key`) or Basic Auth.
+
+---
+
 ## Future Explorations
 
 Ideas descoped from the current roadmap. May revisit post-workshop.

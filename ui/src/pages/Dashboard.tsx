@@ -39,7 +39,7 @@ const CHAPTERS: Chapter[] = [
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const teamId = sessionStorage.getItem("teamId");
+  const teamId = localStorage.getItem("teamId");
   const [status, setStatus] = useState<TeamStatus | null>(null);
 
   useEffect(() => {

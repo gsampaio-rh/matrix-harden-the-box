@@ -29,7 +29,7 @@ const SCENARIO_ILLUSTRATION: Record<string, React.ComponentType<{ className?: st
 
 export default function Results() {
   const navigate = useNavigate();
-  const teamId = sessionStorage.getItem("teamId");
+  const teamId = localStorage.getItem("teamId");
   const [results, setResults] = useState<TeamResults | null>(null);
   const [loading, setLoading] = useState(true);
 

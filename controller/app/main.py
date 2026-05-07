@@ -7,6 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+from app import state
+from app.persistence import load_snapshot
 from app.routers import admin, configure, contain, scores, teams
 from app.scenarios import get_public_scenarios
 from app.ws import manager
@@ -18,9 +20,15 @@ STATIC_DIR = Path(__file__).parent.parent / "static"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logging.getLogger(__name__).info("Exercise Controller starting")
+    logger = logging.getLogger(__name__)
+    logger.info("Exercise Controller starting")
+    snapshot = load_snapshot()
+    if snapshot:
+        saved_teams, saved_timer, saved_first = snapshot
+        state.restore_from_snapshot(saved_teams, saved_timer, saved_first)
+        logger.info("Restored %d teams from disk", len(saved_teams))
     yield
-    logging.getLogger(__name__).info("Exercise Controller shutting down")
+    logger.info("Exercise Controller shutting down")
 
 
 app = FastAPI(

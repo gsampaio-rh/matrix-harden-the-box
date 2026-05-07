@@ -51,7 +51,7 @@ import { api } from "../../api";
 
 beforeEach(() => {
   vi.clearAllMocks();
-  sessionStorage.clear();
+  localStorage.clear();
 });
 
 function renderScoreboard() {
@@ -104,7 +104,7 @@ describe("Scoreboard", () => {
   });
 
   it("shows Your Progress when teamId is set and team found", async () => {
-    sessionStorage.setItem("teamId", "team-alpha");
+    localStorage.setItem("teamId", "team-alpha");
     vi.mocked(api.getLeaderboard).mockResolvedValue({ teams: MOCK_TEAMS });
     vi.mocked(api.getTeamScore).mockResolvedValue(MOCK_TEAMS[0]);
     renderScoreboard();

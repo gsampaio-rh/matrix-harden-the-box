@@ -54,7 +54,7 @@ import { api } from "../../api";
 
 beforeEach(() => {
   vi.clearAllMocks();
-  sessionStorage.clear();
+  localStorage.clear();
 });
 
 function renderResults() {
@@ -72,7 +72,7 @@ describe("Results page", () => {
   });
 
   it("redirects to /contain/exercise if API returns error (not submitted)", async () => {
-    sessionStorage.setItem("teamId", "test-team");
+    localStorage.setItem("teamId", "test-team");
     vi.mocked(api.getTeamResults).mockRejectedValue(new Error("404"));
     renderResults();
     await waitFor(() => {
@@ -81,7 +81,7 @@ describe("Results page", () => {
   });
 
   it("renders scenario breakdown after loading", async () => {
-    sessionStorage.setItem("teamId", "test-team");
+    localStorage.setItem("teamId", "test-team");
     vi.mocked(api.getTeamResults).mockResolvedValue(MOCK_RESULTS);
     renderResults();
     await waitFor(() => {
@@ -91,7 +91,7 @@ describe("Results page", () => {
   });
 
   it("shows score header", async () => {
-    sessionStorage.setItem("teamId", "test-team");
+    localStorage.setItem("teamId", "test-team");
     vi.mocked(api.getTeamResults).mockResolvedValue(MOCK_RESULTS);
     renderResults();
     await waitFor(() => {
@@ -101,7 +101,7 @@ describe("Results page", () => {
   });
 
   it("marks correct answers as BEST", async () => {
-    sessionStorage.setItem("teamId", "test-team");
+    localStorage.setItem("teamId", "test-team");
     vi.mocked(api.getTeamResults).mockResolvedValue(MOCK_RESULTS);
     renderResults();
     await waitFor(() => {
@@ -110,7 +110,7 @@ describe("Results page", () => {
   });
 
   it("shows best answer panel for incorrect selections", async () => {
-    sessionStorage.setItem("teamId", "test-team");
+    localStorage.setItem("teamId", "test-team");
     vi.mocked(api.getTeamResults).mockResolvedValue(MOCK_RESULTS);
     renderResults();
     await waitFor(() => {
@@ -122,7 +122,7 @@ describe("Results page", () => {
   });
 
   it("renders explanations for each scenario", async () => {
-    sessionStorage.setItem("teamId", "test-team");
+    localStorage.setItem("teamId", "test-team");
     vi.mocked(api.getTeamResults).mockResolvedValue(MOCK_RESULTS);
     renderResults();
     await waitFor(() => {
@@ -136,7 +136,7 @@ describe("Results page", () => {
   });
 
   it("renders scenario illustrations", async () => {
-    sessionStorage.setItem("teamId", "test-team");
+    localStorage.setItem("teamId", "test-team");
     vi.mocked(api.getTeamResults).mockResolvedValue(MOCK_RESULTS);
     const { container } = renderResults();
     await waitFor(() => {
@@ -147,7 +147,7 @@ describe("Results page", () => {
   });
 
   it("renders achievements", async () => {
-    sessionStorage.setItem("teamId", "test-team");
+    localStorage.setItem("teamId", "test-team");
     vi.mocked(api.getTeamResults).mockResolvedValue(MOCK_RESULTS);
     renderResults();
     await waitFor(() => {

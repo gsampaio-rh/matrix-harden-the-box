@@ -21,3 +21,8 @@ resources:
 env:
   teamPrefix: team
   defaultTeamCount: "10"
+
+persistence:
+  enabled: true
+  size: 100Mi
+  # storageClass: ""

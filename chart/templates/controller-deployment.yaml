@@ -33,6 +33,15 @@ spec:
               value: {{ .Values.env.teamPrefix }}
             - name: HTB_DEFAULT_TEAM_COUNT
               value: {{ .Values.env.defaultTeamCount | quote }}
+            {{- if .Values.persistence.enabled }}
+            - name: HTB_DATA_DIR
+              value: /app/data
+            {{- end }}
+          {{- if .Values.persistence.enabled }}
+          volumeMounts:
+            - name: state-data
+              mountPath: /app/data
+          {{- end }}
           livenessProbe:
             httpGet:
               path: /healthz
@@ -47,3 +56,9 @@ spec:
             periodSeconds: 5
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+      {{- if .Values.persistence.enabled }}
+      volumes:
+        - name: state-data
+          persistentVolumeClaim:
+            claimName: harden-the-box-data
+      {{- end }}

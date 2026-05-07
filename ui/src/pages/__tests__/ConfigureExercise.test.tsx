@@ -30,7 +30,7 @@ import { api } from "../../api";
 
 beforeEach(() => {
   vi.clearAllMocks();
-  sessionStorage.clear();
+  localStorage.clear();
 });
 
 function renderConfigureExercise() {
@@ -50,7 +50,7 @@ describe("ConfigureExercise", () => {
   });
 
   it("renders first step after loading content", async () => {
-    sessionStorage.setItem("teamId", "team-01");
+    localStorage.setItem("teamId", "team-01");
     vi.mocked(api.getConfigureContent).mockResolvedValue(MOCK_CONTENT);
     vi.mocked(api.getTeamStatus).mockResolvedValue({
       chapters: { configure: { submitted: false } },
@@ -63,7 +63,7 @@ describe("ConfigureExercise", () => {
   });
 
   it("renders progress bar with step counter", async () => {
-    sessionStorage.setItem("teamId", "team-01");
+    localStorage.setItem("teamId", "team-01");
     vi.mocked(api.getConfigureContent).mockResolvedValue(MOCK_CONTENT);
     vi.mocked(api.getTeamStatus).mockResolvedValue({
       chapters: { configure: { submitted: false } },
@@ -77,7 +77,7 @@ describe("ConfigureExercise", () => {
   });
 
   it("shows loading state before content arrives", () => {
-    sessionStorage.setItem("teamId", "team-01");
+    localStorage.setItem("teamId", "team-01");
     vi.mocked(api.getConfigureContent).mockReturnValue(new Promise(() => {}));
     vi.mocked(api.getTeamStatus).mockResolvedValue({
       chapters: { configure: { submitted: false } },
@@ -88,7 +88,7 @@ describe("ConfigureExercise", () => {
   });
 
   it("shows submission locked for already-submitted team", async () => {
-    sessionStorage.setItem("teamId", "team-01");
+    localStorage.setItem("teamId", "team-01");
     vi.mocked(api.getConfigureContent).mockResolvedValue(MOCK_CONTENT);
     vi.mocked(api.getTeamStatus).mockResolvedValue({
       chapters: { configure: { submitted: true } },
@@ -101,7 +101,7 @@ describe("ConfigureExercise", () => {
   });
 
   it("shows Time's Up when timer expired", async () => {
-    sessionStorage.setItem("teamId", "team-01");
+    localStorage.setItem("teamId", "team-01");
     vi.mocked(api.getConfigureContent).mockResolvedValue(MOCK_CONTENT);
     vi.mocked(api.getTeamStatus).mockResolvedValue({
       chapters: { configure: { submitted: false } },
@@ -117,7 +117,7 @@ describe("ConfigureExercise", () => {
   });
 
   it("shows error when content fails to load", async () => {
-    sessionStorage.setItem("teamId", "team-01");
+    localStorage.setItem("teamId", "team-01");
     vi.mocked(api.getConfigureContent).mockRejectedValue(new Error("Network error"));
     vi.mocked(api.getTeamStatus).mockResolvedValue({
       chapters: { configure: { submitted: false } },

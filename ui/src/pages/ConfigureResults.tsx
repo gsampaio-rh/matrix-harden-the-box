@@ -6,7 +6,7 @@ import type { ConfigureResults as ConfigureResultsType, AttackVector, ConfigureC
 
 export default function ConfigureResults() {
   const navigate = useNavigate();
-  const teamId = sessionStorage.getItem("teamId");
+  const teamId = localStorage.getItem("teamId");
   const [results, setResults] = useState<ConfigureResultsType | null>(null);
   const [reference, setReference] = useState<string>("");
   const [loading, setLoading] = useState(true);

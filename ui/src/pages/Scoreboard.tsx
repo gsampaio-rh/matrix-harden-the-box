@@ -8,7 +8,7 @@ import type { TeamScore, WsMessage } from "../types";
 export default function Scoreboard() {
   const [teams, setTeams] = useState<TeamScore[]>([]);
   const [expandedTeam, setExpandedTeam] = useState<string | null>(null);
-  const teamId = sessionStorage.getItem("teamId");
+  const teamId = localStorage.getItem("teamId");
 
   const fetchScores = useCallback(async () => {
     try {
