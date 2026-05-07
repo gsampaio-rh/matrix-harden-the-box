@@ -5,6 +5,7 @@ import logging
 from fastapi import APIRouter, HTTPException
 
 from app import state
+from app.models import ContainChapterState, ConfigureChapterState
 from app.services.configure_scoring import MAX_SCORE as CONFIGURE_MAX_SCORE
 from app.services.contain_scoring import (
     ALL_PROBE_IDS,
@@ -17,15 +18,16 @@ router = APIRouter()
 
 
 def _build_team_entry(team_id: str) -> dict:
-    contain_ch = state.get_chapter(team_id, "contain") or {}
-    configure_ch = state.get_chapter(team_id, "configure") or {}
+    contain_ch = state.get_chapter(team_id, "contain")
+    configure_ch = state.get_chapter(team_id, "configure")
 
-    contain_probes = contain_ch.get("probes")
-    contain_pts = contain_ch.get("score", 0)
-    contain_achs = contain_ch.get("achievements", [])
+    if not isinstance(contain_ch, ContainChapterState):
+        contain_ch = ContainChapterState()
+    if not isinstance(configure_ch, ConfigureChapterState):
+        configure_ch = ConfigureChapterState()
 
-    if contain_probes:
-        contain_data = build_score_response(team_id, contain_probes, contain_pts, contain_achs)
+    if contain_ch.probes:
+        contain_data = build_score_response(team_id, contain_ch.probes, contain_ch.score, contain_ch.achievements)
     else:
         contain_data = {
             "team": team_id,
@@ -37,10 +39,7 @@ def _build_team_entry(team_id: str) -> dict:
             "achievements": [],
         }
 
-    configure_score = configure_ch.get("score", 0)
-    configure_achs = configure_ch.get("achievements", [])
-
-    total_score = contain_pts + configure_score
+    total_score = contain_ch.score + configure_ch.score
     max_total = contain_max_score() + CONFIGURE_MAX_SCORE
 
     return {
@@ -50,19 +49,19 @@ def _build_team_entry(team_id: str) -> dict:
         "blocked_count": contain_data["blocked_count"],
         "total_probes": contain_data["total_probes"],
         "probes": contain_data["probes"],
-        "achievements": list(dict.fromkeys(contain_achs + configure_achs)),
+        "achievements": list(dict.fromkeys(contain_ch.achievements + configure_ch.achievements)),
         "chapters": {
             "contain": {
-                "score": contain_pts,
+                "score": contain_ch.score,
                 "max_score": contain_max_score(),
-                "achievements": contain_achs,
-                "submitted": contain_ch.get("submitted", False),
+                "achievements": contain_ch.achievements,
+                "submitted": contain_ch.submitted,
             },
             "configure": {
-                "score": configure_score,
+                "score": configure_ch.score,
                 "max_score": CONFIGURE_MAX_SCORE,
-                "achievements": configure_achs,
-                "submitted": configure_ch.get("submitted", False),
+                "achievements": configure_ch.achievements,
+                "submitted": configure_ch.submitted,
             },
         },
         "total_score": total_score,

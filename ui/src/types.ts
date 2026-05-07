@@ -45,9 +45,7 @@ export interface TeamScore {
 
 export interface TeamStatus {
   team: string;
-  submitted: boolean;
   chapters: Record<string, { submitted: boolean; score: number; achievements: string[] }>;
-  achievements: string[];
 }
 
 export interface ScenarioResult {

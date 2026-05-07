@@ -7,13 +7,14 @@ from unittest.mock import patch
 
 import pytest
 
-from app.models import ProbeResult, ScenarioAnswer
-from app.persistence import (
-    _deserialize_teams,
-    _serialize_teams,
-    load_snapshot,
-    save_snapshot,
+from app.models import (
+    ConfigureChapterState,
+    ContainChapterState,
+    ProbeResult,
+    ScenarioAnswer,
+    TeamState,
 )
+from app.persistence import load_snapshot, save_snapshot
 
 
 @pytest.fixture()
@@ -28,90 +29,71 @@ def data_dir(tmp_path: Path):
         yield tmp_path
 
 
-def _sample_teams() -> dict[str, dict]:
+def _sample_teams() -> dict[str, TeamState]:
     return {
-        "team-alpha": {
-            "chapters": {
-                "contain": {
-                    "submitted": True,
-                    "probes": [ProbeResult(probe="net-egress", status="blocked")],
-                    "score": 18,
-                    "achievements": ["quick_start"],
-                    "submission": [
-                        ScenarioAnswer(scenario_id="s1", selected_option="deny-all"),
-                    ],
-                },
-                "configure": {
-                    "submitted": False,
-                    "score": 0,
-                    "achievements": [],
-                    "submission": None,
-                    "breakdown": None,
-                    "vectors": None,
-                },
-            }
-        }
+        "team-alpha": TeamState(
+            contain=ContainChapterState(
+                submitted=True,
+                probes=[ProbeResult(probe="net-egress", status="blocked")],
+                score=18,
+                achievements=["quick_start"],
+                submission=[ScenarioAnswer(scenario_id="s1", selected_option="deny-all")],
+            ),
+            configure=ConfigureChapterState(),
+        )
     }
 
 
 class TestSerializeDeserialize:
     def test_round_trip_with_pydantic_objects(self):
         teams = _sample_teams()
-        serialized = _serialize_teams(teams)
-        assert isinstance(serialized["team-alpha"]["chapters"]["contain"]["submission"][0], dict)
-        assert isinstance(serialized["team-alpha"]["chapters"]["contain"]["probes"][0], dict)
+        dumped = {tid: ts.model_dump() for tid, ts in teams.items()}
+        contain_raw = dumped["team-alpha"]["contain"]
+        assert isinstance(contain_raw["submission"][0], dict)
+        assert isinstance(contain_raw["probes"][0], dict)
 
-        restored = _deserialize_teams(serialized)
-        contain = restored["team-alpha"]["chapters"]["contain"]
-        assert isinstance(contain["submission"][0], ScenarioAnswer)
-        assert contain["submission"][0].scenario_id == "s1"
-        assert isinstance(contain["probes"][0], ProbeResult)
-        assert contain["probes"][0].probe == "net-egress"
+        restored = {tid: TeamState.model_validate(data) for tid, data in dumped.items()}
+        contain = restored["team-alpha"].contain
+        assert isinstance(contain.submission[0], ScenarioAnswer)
+        assert contain.submission[0].scenario_id == "s1"
+        assert isinstance(contain.probes[0], ProbeResult)
+        assert contain.probes[0].probe == "net-egress"
 
     def test_round_trip_preserves_scores_and_achievements(self):
         teams = _sample_teams()
-        serialized = _serialize_teams(teams)
-        restored = _deserialize_teams(serialized)
-        contain = restored["team-alpha"]["chapters"]["contain"]
-        assert contain["score"] == 18
-        assert contain["achievements"] == ["quick_start"]
-        assert contain["submitted"] is True
+        dumped = {tid: ts.model_dump() for tid, ts in teams.items()}
+        restored = {tid: TeamState.model_validate(data) for tid, data in dumped.items()}
+        contain = restored["team-alpha"].contain
+        assert contain.score == 18
+        assert contain.achievements == ["quick_start"]
+        assert contain.submitted is True
 
-    def test_configure_chapter_no_pydantic(self):
+    def test_configure_chapter(self):
         teams = {
-            "team-beta": {
-                "chapters": {
-                    "contain": {"submitted": False, "probes": None, "score": 0, "achievements": [], "submission": None},
-                    "configure": {
-                        "submitted": True,
-                        "score": 15,
-                        "achievements": ["constitutional_author"],
-                        "submission": {"sections": {"role": "SRE agent"}},
-                        "breakdown": {"constitution": 8},
-                        "vectors": [{"name": "secret_exfil", "blocked": True}],
-                    },
-                }
-            }
+            "team-beta": TeamState(
+                contain=ContainChapterState(),
+                configure=ConfigureChapterState(
+                    submitted=True,
+                    score=15,
+                    achievements=["constitutional_author"],
+                    submission={"sections": {"role": "SRE agent"}},
+                    breakdown={"constitution": 8},
+                    vectors=[{"name": "secret_exfil", "blocked": True}],
+                ),
+            )
         }
-        serialized = _serialize_teams(teams)
-        restored = _deserialize_teams(serialized)
-        configure = restored["team-beta"]["chapters"]["configure"]
-        assert configure["score"] == 15
-        assert configure["submission"]["sections"]["role"] == "SRE agent"
+        dumped = {tid: ts.model_dump() for tid, ts in teams.items()}
+        restored = {tid: TeamState.model_validate(data) for tid, data in dumped.items()}
+        configure = restored["team-beta"].configure
+        assert configure.score == 15
+        assert configure.submission["sections"]["role"] == "SRE agent"
 
     def test_null_submission_and_probes(self):
-        teams = {
-            "team-gamma": {
-                "chapters": {
-                    "contain": {"submitted": False, "probes": None, "score": 0, "achievements": [], "submission": None},
-                    "configure": {"submitted": False, "score": 0, "achievements": [], "submission": None, "breakdown": None, "vectors": None},
-                }
-            }
-        }
-        serialized = _serialize_teams(teams)
-        restored = _deserialize_teams(serialized)
-        assert restored["team-gamma"]["chapters"]["contain"]["submission"] is None
-        assert restored["team-gamma"]["chapters"]["contain"]["probes"] is None
+        teams = {"team-gamma": TeamState()}
+        dumped = {tid: ts.model_dump() for tid, ts in teams.items()}
+        restored = {tid: TeamState.model_validate(data) for tid, data in dumped.items()}
+        assert restored["team-gamma"].contain.submission is None
+        assert restored["team-gamma"].contain.probes is None
 
 
 class TestSaveLoad:
@@ -136,9 +118,9 @@ class TestSaveLoad:
         assert loaded_first["contain"] == "team-alpha"
         assert loaded_first["configure"] is None
 
-        contain = loaded_teams["team-alpha"]["chapters"]["contain"]
-        assert isinstance(contain["submission"][0], ScenarioAnswer)
-        assert contain["score"] == 18
+        contain = loaded_teams["team-alpha"].contain
+        assert isinstance(contain.submission[0], ScenarioAnswer)
+        assert contain.score == 18
 
     def test_load_returns_none_when_no_file(self, data_dir: Path):
         result = load_snapshot()

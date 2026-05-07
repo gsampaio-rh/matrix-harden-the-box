@@ -321,6 +321,6 @@ def compute_achievements(
         earned.append("concise_commander")
 
     if is_first_submission:
-        earned.append("first_submission")
+        earned.append("first_blood")
 
     return earned

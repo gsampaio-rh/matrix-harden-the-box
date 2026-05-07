@@ -156,7 +156,7 @@ class TestAchievements:
         assert "circuit_breaker" in achs
         assert "injection_resistant" in achs
         assert "concise_commander" in achs
-        assert "first_submission" in achs
+        assert "first_blood" in achs
 
     def test_empty_gets_no_achievements(self):
         breakdown = evaluate_submission(EMPTY_SECTIONS, {"troubleshooting": "", "escalation": ""}, BAD_LIMITS)

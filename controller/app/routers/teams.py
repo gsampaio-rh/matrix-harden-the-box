@@ -39,18 +39,9 @@ async def get_team_status(team_id: str):
     if not team:
         raise HTTPException(status_code=404, detail=f"Team {team_id} not found")
 
-    chapters = {}
-    for ch_name in state.CHAPTERS:
-        ch = state.get_chapter(team_id, ch_name)
-        chapters[ch_name] = {
-            "submitted": ch["submitted"] if ch else False,
-            "score": ch["score"] if ch else 0,
-            "achievements": ch["achievements"] if ch else [],
-        }
+    chapters = state.build_chapter_summary(team_id)
 
     return {
         "team": team_id,
-        "submitted": state.has_submitted(team_id, "contain"),
         "chapters": chapters,
-        "achievements": state.get_achievements(team_id, "contain"),
     }

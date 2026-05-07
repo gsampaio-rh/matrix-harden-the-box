@@ -2,13 +2,14 @@ import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app import state
-from app.persistence import load_snapshot
+from app.config import settings
+from app.persistence import load_snapshot, save_snapshot
 from app.routers import admin, configure, contain, scores, teams
 from app.scenarios import get_public_scenarios
 from app.ws import manager
@@ -22,6 +23,12 @@ STATIC_DIR = Path(__file__).parent.parent / "static"
 async def lifespan(app: FastAPI):
     logger = logging.getLogger(__name__)
     logger.info("Exercise Controller starting")
+
+    def _do_persist() -> None:
+        save_snapshot(state.teams, state.timer_end, state.first_submission)
+
+    state.set_persist_fn(_do_persist)
+
     snapshot = load_snapshot()
     if snapshot:
         saved_teams, saved_timer, saved_first = snapshot
@@ -37,13 +44,13 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+if settings.cors_origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[o.strip() for o in settings.cors_origins.split(",")],
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 app.include_router(teams.router, prefix="/api/teams", tags=["teams"])
 app.include_router(contain.router, prefix="/api/contain", tags=["contain"])
@@ -77,6 +84,8 @@ if STATIC_DIR.is_dir():
 
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
+        if full_path.startswith("api/") or full_path.startswith("ws/"):
+            raise HTTPException(status_code=404, detail="Not found")
         file_path = STATIC_DIR / full_path
         if file_path.is_file():
             return FileResponse(file_path)

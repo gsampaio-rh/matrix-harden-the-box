@@ -1,5 +1,60 @@
 # Changelog: Harden the Box
 
+## Code Review Refactoring — Security, Architecture & Code Quality
+
+**Date:** 2026-05-07
+**Status:** Complete
+
+Deep code review identified 17 findings across security, architecture, persistence, correctness, and code quality. All addressed in a single pass across 24 files (402 lines added, 416 removed).
+
+### Security (Phase 1)
+
+- **Admin authentication**: new `HTB_ADMIN_KEY` env var + `X-Admin-Key` header guard on all `/api/admin/*` endpoints via `require_admin` dependency
+- **CORS lockdown**: removed wildcard `*` + `allow_credentials=True` — CORS middleware now conditional on `HTB_CORS_ORIGINS` (comma-separated)
+- **SPA catch-all guard**: `/api/*` and `/ws/*` paths now return 404 instead of silently serving `index.html`
+- **Server-side timer enforcement**: contain and configure submit endpoints reject with 403 after timer expires
+
+### Architecture (Phase 2)
+
+- **Typed domain models**: `TeamState`, `ContainChapterState`, `ConfigureChapterState` Pydantic models replace untyped `dict` state
+- **State module refactored**: attribute access (`ch.submitted`) replaces dict access (`ch["submitted"]`), type hints on all public functions
+- **Persistence simplified**: `model_dump()` / `model_validate()` replaces hand-rolled `_serialize_teams` / `_deserialize_teams` (44 lines removed)
+- **Circular import broken**: `set_persist_fn()` / `persist()` injection pattern replaces `from app.persistence import save_snapshot` inside `state.py`
+
+### Persistence (Phase 3)
+
+- **Batch persistence**: removed per-setter `_persist()` calls from 10 individual state mutators — routers call `state.persist()` once after all mutations complete
+
+### Correctness (Phase 4)
+
+- **Legacy fields removed**: dropped top-level `submitted` / `achievements` from team status and admin list responses — chapter-specific breakdown is the single source of truth
+- **Probe max cached**: `_compute_max_points_per_probe()` result cached at module level (`_PROBE_MAX`) — avoids recomputation on every score response
+- **Timer interval conditional**: `setInterval` for timer expiry check now only created when a timer is active (was running unconditionally on every page load)
+
+### Code Quality (Phase 5)
+
+- **Shared constants**: `SCENARIO_ILLUSTRATION` and `CATEGORY_COLORS` extracted to `ui/src/constants/scenarios.ts`
+- **Shared ProgressBar**: unified component in `ui/src/components/ProgressBar.tsx` replaces 2 local implementations
+- **Chapter summary builder**: `state.build_chapter_summary()` replaces duplicated dict construction in admin and teams routers
+- **Models centralized**: `ConfigureLimits` and `ConfigureSubmission` moved from router to `models.py`
+- **API types**: explicit return type annotations on all `api.ts` functions
+- **Achievement ID**: renamed `first_submission` → `first_blood` for consistency across chapters
+- **Test fixtures**: all test files mock persistence with `state.set_persist_fn(lambda: None)`
+- **Admin UI**: added admin key input flow with `sessionStorage` persistence
+
+### Files Added
+
+- `controller/app/dependencies.py` — `require_admin` FastAPI dependency
+- `ui/src/components/ProgressBar.tsx` — shared progress bar component
+- `ui/src/constants/scenarios.ts` — shared scenario/category constants
+
+### Test Results
+
+- 117 backend tests passing (pytest)
+- 86 frontend tests passing (vitest)
+
+---
+
 ## Session Persistence — Tab Close + Pod Restart
 
 **Date:** 2026-05-07

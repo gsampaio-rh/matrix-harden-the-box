@@ -1,8 +1,8 @@
 # Plan: Harden the Box
 
 **Status:** No active sprint
-**Date:** 2026-05-06
-**Last delivery:** Harness Engineering slide deck + deploy script fix
+**Date:** 2026-05-07
+**Last delivery:** Code review refactoring — security, architecture, persistence, correctness, DRY
 **Related:** [Architecture](ARCHITECTURE.md) | [Changelog](CHANGELOG.md)
 
 ---
@@ -11,7 +11,7 @@ Conventions: `[ ]` = pending | `[!]` = blocked | **Gate** = required criterion
 
 ## Backlog
 
-- [ ] **Admin authentication** — protect `/api/admin/*` endpoints (reset, timer) with a password or API key. Currently anyone can reset all data or start/stop the timer. Use env var `HTB_ADMIN_PASSWORD` and require it via header (`X-Admin-Key`) or Basic Auth.
+No pending items.
 
 ---
 

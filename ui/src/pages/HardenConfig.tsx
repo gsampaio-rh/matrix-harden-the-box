@@ -1,31 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import AttackSimulation from "../components/AttackSimulation";
-import NetEgressDiagram from "../components/illustrations/NetEgressDiagram";
-import NetIngressDiagram from "../components/illustrations/NetIngressDiagram";
-import RbacCrbDiagram from "../components/illustrations/RbacCrbDiagram";
-import RbacSecretsDiagram from "../components/illustrations/RbacSecretsDiagram";
-import SecRootDiagram from "../components/illustrations/SecRootDiagram";
-import SecFilesystemDiagram from "../components/illustrations/SecFilesystemDiagram";
-import SecCapsDiagram from "../components/illustrations/SecCapsDiagram";
+import ProgressBar from "../components/ProgressBar";
 import { api } from "../api";
+import { SCENARIO_ILLUSTRATION, CATEGORY_COLORS } from "../constants/scenarios";
 import type { Scenario, ScenarioAnswer, TeamScore } from "../types";
-
-const SCENARIO_ILLUSTRATION: Record<string, React.ComponentType<{ className?: string }>> = {
-  "net-egress": NetEgressDiagram,
-  "net-ingress": NetIngressDiagram,
-  "rbac-crb": RbacCrbDiagram,
-  "rbac-secrets": RbacSecretsDiagram,
-  "sec-root": SecRootDiagram,
-  "sec-filesystem": SecFilesystemDiagram,
-  "sec-capabilities": SecCapsDiagram,
-};
-
-const CATEGORY_COLORS: Record<string, string> = {
-  Network: "var(--matrix-blue)",
-  RBAC: "var(--matrix-yellow)",
-  SecurityContext: "var(--matrix-green)",
-};
 
 export default function HardenConfig() {
   const navigate = useNavigate();
@@ -58,8 +37,8 @@ export default function HardenConfig() {
     api
       .getTeamStatus(teamId)
       .then((res) => {
-        const data = res as { submitted: boolean };
-        if (data.submitted) {
+        const data = res as { chapters: Record<string, { submitted: boolean }> };
+        if (data.chapters?.contain?.submitted) {
           setSubmitted(true);
           setStep(-1);
         }
@@ -68,15 +47,31 @@ export default function HardenConfig() {
   }, [teamId]);
 
   useEffect(() => {
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
     api
       .getTimer()
       .then((res) => {
         const t = res as { active: boolean; end_time: string | null };
         if (t.active && t.end_time) {
-          if (Date.now() >= new Date(t.end_time).getTime()) setTimerExpired(true);
+          const endMs = new Date(t.end_time).getTime();
+          if (Date.now() >= endMs) {
+            setTimerExpired(true);
+            return;
+          }
+          intervalId = setInterval(() => {
+            if (Date.now() >= endMs) {
+              setTimerExpired(true);
+              if (intervalId) clearInterval(intervalId);
+            }
+          }, 1000);
         }
       })
       .catch(() => {});
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
   }, []);
 
   const current = scenarios[step] ?? null;
@@ -339,29 +334,3 @@ export default function HardenConfig() {
   );
 }
 
-function ProgressBar({
-  current,
-  total,
-}: {
-  current: number;
-  total: number;
-}) {
-  const pct = total > 0 ? (current / total) * 100 : 0;
-
-  return (
-    <div className="space-y-1">
-      <div className="flex justify-between text-[10px] text-gray-600 font-mono">
-        <span>
-          {current}/{total}
-        </span>
-        <span>{Math.round(pct)}%</span>
-      </div>
-      <div className="w-full bg-gray-800 rounded-full h-1 overflow-hidden">
-        <div
-          className="h-full bg-[var(--matrix-green)] transition-all duration-500 rounded-full"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-    </div>
-  );
-}

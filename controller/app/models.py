@@ -28,3 +28,42 @@ class TeamStatus(BaseModel):
     team_id: str
     defenses_applied: bool
     score: int | None = None
+
+
+# ── Chapter state models ────────────────────────────────────────────
+
+class ContainChapterState(BaseModel):
+    submitted: bool = False
+    probes: list[ProbeResult] | None = None
+    score: int = 0
+    achievements: list[str] = []
+    submission: list[ScenarioAnswer] | None = None
+
+
+class ConfigureChapterState(BaseModel):
+    submitted: bool = False
+    score: int = 0
+    achievements: list[str] = []
+    submission: dict | None = None
+    breakdown: dict | None = None
+    vectors: list[dict] | None = None
+
+
+class TeamState(BaseModel):
+    contain: ContainChapterState = ContainChapterState()
+    configure: ConfigureChapterState = ConfigureChapterState()
+
+
+# ── Request models ──────────────────────────────────────────────────
+
+class ConfigureLimits(BaseModel):
+    max_turns: int | None = None
+    bash_timeout: int | None = None
+    env_scrub: bool = False
+
+
+class ConfigureSubmission(BaseModel):
+    team_id: str
+    sections: dict[str, str]
+    skills: dict[str, str]
+    limits: ConfigureLimits

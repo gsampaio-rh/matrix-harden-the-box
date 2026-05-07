@@ -1,14 +1,15 @@
 import logging
 from datetime import UTC, datetime, timedelta
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from app import state
+from app.dependencies import require_admin
 from app.ws import manager
 
 logger = logging.getLogger(__name__)
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_admin)])
 
 
 @router.post("/reset")
@@ -23,21 +24,9 @@ async def reset_exercise():
 async def list_teams():
     result = []
     for team_id in state.get_all_teams():
-        chapters = {}
-        for ch_name in state.CHAPTERS:
-            ch = state.get_chapter(team_id, ch_name)
-            chapters[ch_name] = {
-                "submitted": ch["submitted"] if ch else False,
-                "score": ch["score"] if ch else 0,
-                "achievements": ch["achievements"] if ch else [],
-            }
-
-        contain_ch = chapters.get("contain", {})
+        chapters = state.build_chapter_summary(team_id)
         result.append({
             "team": team_id,
-            "submitted": contain_ch.get("submitted", False),
-            "score": contain_ch.get("score", 0) if contain_ch.get("submitted") else None,
-            "achievements": contain_ch.get("achievements", []),
             "chapters": chapters,
         })
     return {"teams": result}

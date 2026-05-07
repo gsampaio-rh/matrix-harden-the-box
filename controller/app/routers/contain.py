@@ -1,6 +1,7 @@
 """Chapter 1 (Contain) — Harden the Box exercise endpoints."""
 
 import logging
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, HTTPException
 
@@ -31,6 +32,10 @@ async def submit_answers(team_id: str, payload: SubmissionPayload):
     if state.has_submitted(team_id, CHAPTER):
         raise HTTPException(status_code=409, detail="Already submitted — one shot only")
 
+    timer = state.get_timer()
+    if timer and datetime.now(UTC) >= timer:
+        raise HTTPException(status_code=403, detail="Time's up — submissions are locked")
+
     state.set_contain_submission(team_id, payload.answers)
     probes, total_points = evaluate_submission(payload.answers)
     is_first = state.record_first_submission(team_id, CHAPTER)
@@ -40,6 +45,7 @@ async def submit_answers(team_id: str, payload: SubmissionPayload):
     state.set_contain_probes(team_id, probes)
     state.set_score(team_id, CHAPTER, total_points)
     state.set_achievements(team_id, CHAPTER, achs)
+    state.persist()
 
     score_data = build_score_response(team_id, probes, total_points, achs)
     await manager.broadcast("score_updated", score_data)

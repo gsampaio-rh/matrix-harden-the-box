@@ -33,6 +33,10 @@ spec:
               value: {{ .Values.env.teamPrefix }}
             - name: HTB_DEFAULT_TEAM_COUNT
               value: {{ .Values.env.defaultTeamCount | quote }}
+            {{- if .Values.env.adminKey }}
+            - name: HTB_ADMIN_KEY
+              value: {{ .Values.env.adminKey | quote }}
+            {{- end }}
             {{- if .Values.persistence.enabled }}
             - name: HTB_DATA_DIR
               value: /app/data

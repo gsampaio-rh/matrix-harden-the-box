@@ -21,6 +21,7 @@ resources:
 env:
   teamPrefix: team
   defaultTeamCount: "10"
+  adminKey: ""
 
 persistence:
   enabled: true

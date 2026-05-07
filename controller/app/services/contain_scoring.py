@@ -32,7 +32,7 @@ ACHIEVEMENTS = {
 }
 
 
-def _max_points_per_probe() -> dict[str, int]:
+def _compute_max_points_per_probe() -> dict[str, int]:
     """For each probe, find the maximum points achievable across all scenarios."""
     probe_max: dict[str, int] = {pid: 0 for pid in ALL_PROBE_IDS}
     for scenario in SCENARIOS:
@@ -41,6 +41,9 @@ def _max_points_per_probe() -> dict[str, int]:
                 pts_per_probe = opt["points"] // max(1, len(opt["probes_blocked"]))
                 probe_max[probe] = max(probe_max[probe], pts_per_probe)
     return probe_max
+
+
+_PROBE_MAX = _compute_max_points_per_probe()
 
 
 def evaluate_submission(answers: list[ScenarioAnswer]) -> tuple[list[ProbeResult], int]:
@@ -82,11 +85,10 @@ def build_score_response(
     achievements: list[str],
 ) -> dict:
     max_pts = max_score()
-    probe_max = _max_points_per_probe()
 
     probe_details = []
     for p in probes:
-        mp = probe_max.get(p.probe, 0)
+        mp = _PROBE_MAX.get(p.probe, 0)
         earned = mp if p.status == "BLOCKED" else 0
         probe_details.append({
             "id": p.probe,

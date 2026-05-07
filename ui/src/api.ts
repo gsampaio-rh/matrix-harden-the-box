@@ -1,6 +1,20 @@
-import type { ScenarioAnswer } from "./types";
+import type {
+  ConfigureContent,
+  ConfigureResults,
+  ConfigureSubmitResponse,
+  Scenario,
+  ScenarioAnswer,
+  TeamResults,
+  TeamScore,
+  TeamStatus,
+  TimerState,
+} from "./types";
 
 const BASE = "/api";
+
+function getAdminKey(): string {
+  return sessionStorage.getItem("adminKey") ?? "";
+}
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
@@ -14,56 +28,64 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
+async function adminRequest<T>(path: string, options?: RequestInit): Promise<T> {
+  const adminKey = getAdminKey();
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (adminKey) headers["X-Admin-Key"] = adminKey;
+  return request<T>(path, { ...options, headers });
+}
+
 export const api = {
-  registerTeam: (teamId: string) =>
+  registerTeam: (teamId: string): Promise<{ team: string; status: string }> =>
     request("/teams/register", {
       method: "POST",
       body: JSON.stringify({ team_id: teamId }),
     }),
 
-  getScenarios: () => request("/scenarios"),
+  getScenarios: (): Promise<{ scenarios: Scenario[] }> => request("/scenarios"),
 
-  submitAnswers: (teamId: string, answers: ScenarioAnswer[]) =>
+  submitAnswers: (teamId: string, answers: ScenarioAnswer[]): Promise<TeamScore> =>
     request(`/contain/${teamId}/submit`, {
       method: "POST",
       body: JSON.stringify({ answers }),
     }),
 
-  getTeamStatus: (teamId: string) => request(`/teams/${teamId}/status`),
+  getTeamStatus: (teamId: string): Promise<TeamStatus> => request(`/teams/${teamId}/status`),
 
-  getTeamResults: (teamId: string) => request(`/contain/results/${teamId}`),
+  getTeamResults: (teamId: string): Promise<TeamResults> => request(`/contain/results/${teamId}`),
 
-  getLeaderboard: () => request("/scores"),
-  getTeamScore: (teamId: string) => request(`/scores/${teamId}`),
+  getLeaderboard: (): Promise<{ teams: TeamScore[] }> => request("/scores"),
+  getTeamScore: (teamId: string): Promise<TeamScore> => request(`/scores/${teamId}`),
 
-  resetExercise: () => request("/admin/reset", { method: "POST" }),
+  resetExercise: (): Promise<{ status: string }> => adminRequest("/admin/reset", { method: "POST" }),
 
-  listTeams: () => request("/admin/teams"),
+  listTeams: (): Promise<{ teams: Array<{ team: string; chapters: Record<string, { submitted: boolean; score: number; achievements: string[] }> }> }> =>
+    adminRequest("/admin/teams"),
 
-  startTimer: (durationMinutes: number) =>
-    request("/admin/timer", {
+  startTimer: (durationMinutes: number): Promise<{ status: string; end_time: string }> =>
+    adminRequest("/admin/timer", {
       method: "POST",
       body: JSON.stringify({ duration_minutes: durationMinutes }),
     }),
 
-  stopTimer: () => request("/admin/timer", { method: "DELETE" }),
+  stopTimer: (): Promise<{ status: string }> => adminRequest("/admin/timer", { method: "DELETE" }),
 
-  getTimer: () => request("/admin/timer"),
+  getTimer: (): Promise<TimerState> => adminRequest("/admin/timer"),
 
   // ── Chapter 2 (Configure) ────────────────────────────────────────
 
-  getConfigureContent: () => request("/configure/content"),
+  getConfigureContent: (): Promise<ConfigureContent> => request("/configure/content"),
 
   submitConfigure: (payload: {
     team_id: string;
     sections: Record<string, string>;
     skills: Record<string, string>;
     limits: { max_turns: number | null; bash_timeout: number | null; env_scrub: boolean };
-  }) =>
+  }): Promise<ConfigureSubmitResponse> =>
     request("/configure/submit", {
       method: "POST",
       body: JSON.stringify(payload),
     }),
 
-  getConfigureResults: (teamId: string) => request(`/configure/results/${teamId}`),
+  getConfigureResults: (teamId: string): Promise<ConfigureResults> => request(`/configure/results/${teamId}`),
 };

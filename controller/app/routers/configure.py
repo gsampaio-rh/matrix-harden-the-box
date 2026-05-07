@@ -1,12 +1,13 @@
 """Chapter 2 (Configure) — Build Your Playbook exercise endpoints."""
 
 import logging
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
 
 from app import state
 from app.configure_content import get_content
+from app.models import ConfigureSubmission
 from app.services.configure_scoring import compute_achievements, evaluate_submission
 from app.ws import manager
 
@@ -14,19 +15,6 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 CHAPTER = "configure"
-
-
-class ConfigureLimits(BaseModel):
-    max_turns: int | None = None
-    bash_timeout: int | None = None
-    env_scrub: bool = False
-
-
-class ConfigureSubmission(BaseModel):
-    team_id: str
-    sections: dict[str, str]
-    skills: dict[str, str]
-    limits: ConfigureLimits
 
 
 @router.get("/content")
@@ -44,6 +32,10 @@ async def submit_configure(payload: ConfigureSubmission):
     if state.has_submitted(payload.team_id, CHAPTER):
         raise HTTPException(status_code=409, detail="Already submitted — one shot only")
 
+    timer = state.get_timer()
+    if timer and datetime.now(UTC) >= timer:
+        raise HTTPException(status_code=403, detail="Time's up — submissions are locked")
+
     limits_dict = payload.limits.model_dump()
     breakdown = evaluate_submission(payload.sections, payload.skills, limits_dict)
     is_first = state.record_first_submission(payload.team_id, CHAPTER)
@@ -59,6 +51,7 @@ async def submit_configure(payload: ConfigureSubmission):
     })
     state.set_configure_breakdown(payload.team_id, breakdown)
     state.set_configure_vectors(payload.team_id, breakdown["replay"]["vectors"])
+    state.persist()
 
     await manager.broadcast("score_updated", {
         "team": payload.team_id,

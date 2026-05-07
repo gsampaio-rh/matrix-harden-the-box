@@ -8,6 +8,7 @@ from app.scenarios import SCENARIOS
 
 @pytest.fixture(autouse=True)
 def clean_state():
+    state.set_persist_fn(lambda: None)
     state.clear_all()
     yield
     state.clear_all()
@@ -170,8 +171,8 @@ class TestTeamStatus:
         res = await client.get("/api/teams/team-01/status")
         assert res.status_code == 200
         data = res.json()
-        assert data["submitted"] is False
-        assert data["achievements"] == []
+        assert data["chapters"]["contain"]["submitted"] is False
+        assert data["chapters"]["contain"]["achievements"] == []
 
     async def test_status_after_submit(self, client: AsyncClient):
         await register(client, "team-01")
@@ -181,8 +182,8 @@ class TestTeamStatus:
         )
         res = await client.get("/api/teams/team-01/status")
         data = res.json()
-        assert data["submitted"] is True
-        assert len(data["achievements"]) > 0
+        assert data["chapters"]["contain"]["submitted"] is True
+        assert len(data["chapters"]["contain"]["achievements"]) > 0
 
     async def test_status_404_unknown_team(self, client: AsyncClient):
         res = await client.get("/api/teams/unknown/status")

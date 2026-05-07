@@ -3,9 +3,6 @@ import { api } from "../api";
 
 interface AdminTeam {
   team: string;
-  submitted: boolean;
-  score: number | null;
-  achievements: string[];
   chapters: Record<string, { submitted: boolean; score: number; achievements: string[] }>;
 }
 
@@ -15,6 +12,8 @@ export default function Admin() {
   const [duration, setDuration] = useState(20);
   const [endTime, setEndTime] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [keyInput, setKeyInput] = useState("");
 
   const refresh = async () => {
     try {
@@ -24,12 +23,40 @@ export default function Admin() {
       setTimerActive(timer.active);
       setEndTime(timer.end_time);
     } catch (err) {
+      if (err instanceof Error && err.message.includes("admin key")) {
+        setAuthenticated(false);
+        sessionStorage.removeItem("adminKey");
+        return;
+      }
       console.error("Failed to refresh admin data:", err);
     }
   };
 
+  const handleLogin = async () => {
+    sessionStorage.setItem("adminKey", keyInput);
+    try {
+      await api.listTeams();
+      setAuthenticated(true);
+      refresh();
+    } catch {
+      sessionStorage.removeItem("adminKey");
+      setMessage("Invalid admin key");
+    }
+  };
+
   useEffect(() => {
-    refresh();
+    const stored = sessionStorage.getItem("adminKey");
+    if (stored) {
+      setAuthenticated(true);
+      refresh();
+    } else {
+      api.listTeams()
+        .then(() => {
+          setAuthenticated(true);
+          refresh();
+        })
+        .catch(() => setAuthenticated(false));
+    }
   }, []);
 
   const handleStartTimer = async () => {
@@ -62,6 +89,37 @@ export default function Admin() {
       setMessage(`Failed to reset: ${err}`);
     }
   };
+
+  if (!authenticated) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="bg-[var(--matrix-card)] border border-[var(--matrix-border)] rounded-lg p-8 w-full max-w-md space-y-4">
+          <h2 className="text-[var(--matrix-green)] text-xl font-bold text-center">Admin Access</h2>
+          {message && (
+            <div className="text-sm p-3 rounded bg-[var(--matrix-red)]/10 text-[var(--matrix-red)]">
+              {message}
+            </div>
+          )}
+          <input
+            type="password"
+            value={keyInput}
+            onChange={(e) => setKeyInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+            placeholder="Admin key"
+            className="w-full bg-[var(--matrix-dark)] border border-[var(--matrix-border)] rounded px-4 py-2.5 text-[var(--matrix-green)] placeholder-gray-600 focus:outline-none focus:border-[var(--matrix-green)] font-mono"
+            autoFocus
+          />
+          <button
+            onClick={handleLogin}
+            disabled={!keyInput}
+            className="w-full bg-[var(--matrix-green)] text-black font-bold py-2.5 rounded hover:brightness-110 transition disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            Enter
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">

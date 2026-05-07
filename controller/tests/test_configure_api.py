@@ -7,6 +7,7 @@ from app.main import app
 
 @pytest.fixture(autouse=True)
 def clean_state():
+    state.set_persist_fn(lambda: None)
     state.clear_all()
     yield
     state.clear_all()
@@ -190,8 +191,8 @@ class TestFirstSubmission:
         payload_b = {**GOOD_PAYLOAD, "team_id": "team-b"}
         res_a = await client.post("/api/configure/submit", json=payload_a)
         res_b = await client.post("/api/configure/submit", json=payload_b)
-        assert "first_submission" in res_a.json()["achievements"]
-        assert "first_submission" not in res_b.json()["achievements"]
+        assert "first_blood" in res_a.json()["achievements"]
+        assert "first_blood" not in res_b.json()["achievements"]
 
 
 class TestPartialConfig:

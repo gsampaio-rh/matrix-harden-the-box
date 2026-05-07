@@ -5,6 +5,7 @@ import ConstitutionEditor from "../components/configure/ConstitutionEditor";
 import SkillEditor from "../components/configure/SkillEditor";
 import CircuitBreakers from "../components/configure/CircuitBreakers";
 import HarnessReplay from "../components/configure/HarnessReplay";
+import ProgressBar from "../components/ProgressBar";
 import { api } from "../api";
 import type { ConfigureContent, ConfigureSubmitResponse, AttackVector } from "../types";
 
@@ -61,15 +62,32 @@ export default function ConfigureExercise() {
         console.error("Failed to load exercise content:", err);
         setError("Failed to load exercise content. Please refresh.");
       });
+
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
     api
       .getTimer()
       .then((res) => {
         const t = res as { active: boolean; end_time: string | null };
         if (t.active && t.end_time) {
-          if (Date.now() >= new Date(t.end_time).getTime()) setTimerExpired(true);
+          const endMs = new Date(t.end_time).getTime();
+          if (Date.now() >= endMs) {
+            setTimerExpired(true);
+            return;
+          }
+          intervalId = setInterval(() => {
+            if (Date.now() >= endMs) {
+              setTimerExpired(true);
+              if (intervalId) clearInterval(intervalId);
+            }
+          }, 1000);
         }
       })
       .catch(() => {});
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
   }, []);
 
   useEffect(() => {
@@ -181,7 +199,7 @@ export default function ConfigureExercise() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <ProgressBar current={step} total={STEP_LABELS.length} labels={STEP_LABELS} />
+      <ProgressBar current={step} total={STEP_LABELS.length} labels={STEP_LABELS} color="var(--chapter-configure)" />
 
       <div key={step} className="animate-fade-in">
         {step === 0 && (
@@ -240,32 +258,6 @@ export default function ConfigureExercise() {
   );
 }
 
-function ProgressBar({
-  current,
-  total,
-  labels,
-}: {
-  current: number;
-  total: number;
-  labels: string[];
-}) {
-  const pct = total > 0 ? (current / total) * 100 : 0;
-
-  return (
-    <div className="space-y-2">
-      <div className="flex justify-between text-[10px] text-gray-600 font-mono">
-        <span>{labels[current]}</span>
-        <span>{current + 1}/{total}</span>
-      </div>
-      <div className="w-full bg-gray-800 rounded-full h-1 overflow-hidden">
-        <div
-          className="h-full transition-all duration-500 rounded-full"
-          style={{ width: `${pct}%`, backgroundColor: "var(--chapter-configure)" }}
-        />
-      </div>
-    </div>
-  );
-}
 
 function ReviewAndSubmit({
   sections,
