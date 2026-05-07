@@ -75,10 +75,9 @@ class TestSerializeDeserialize:
                 configure=ConfigureChapterState(
                     submitted=True,
                     score=15,
-                    achievements=["constitutional_author"],
-                    submission={"sections": {"role": "SRE agent"}},
-                    breakdown={"constitution": 8},
-                    vectors=[{"name": "secret_exfil", "blocked": True}],
+                    achievements=["systems_thinker"],
+                    submission={"choices": [{"dimension_id": "context_strategy", "option_id": "B", "justification": "Clean slate"}]},
+                    breakdown={"awareness": {"score": 10}},
                 ),
             )
         }
@@ -86,7 +85,7 @@ class TestSerializeDeserialize:
         restored = {tid: TeamState.model_validate(data) for tid, data in dumped.items()}
         configure = restored["team-beta"].configure
         assert configure.score == 15
-        assert configure.submission["sections"]["role"] == "SRE agent"
+        assert configure.submission["choices"][0]["dimension_id"] == "context_strategy"
 
     def test_null_submission_and_probes(self):
         teams = {"team-gamma": TeamState()}

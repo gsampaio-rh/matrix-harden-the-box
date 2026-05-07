@@ -2,7 +2,7 @@
 
 **Status:** No active sprint
 **Date:** 2026-05-07
-**Last delivery:** Code review refactoring — security, architecture, persistence, correctness, DRY
+**Last delivery:** Harness content redesign + security hardening
 **Related:** [Architecture](ARCHITECTURE.md) | [Changelog](CHANGELOG.md)
 
 ---

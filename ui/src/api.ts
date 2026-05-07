@@ -10,6 +10,7 @@ import type {
   TimerState,
 } from "./types";
 
+
 const BASE = "/api";
 
 function getAdminKey(): string {
@@ -70,17 +71,16 @@ export const api = {
 
   stopTimer: (): Promise<{ status: string }> => adminRequest("/admin/timer", { method: "DELETE" }),
 
-  getTimer: (): Promise<TimerState> => adminRequest("/admin/timer"),
+  getTimer: (): Promise<TimerState> => request("/teams/timer"),
 
-  // ── Chapter 2 (Configure) ────────────────────────────────────────
+  // ── Chapter 2 (Configure) — Harness Design ───────────────────────
 
   getConfigureContent: (): Promise<ConfigureContent> => request("/configure/content"),
 
   submitConfigure: (payload: {
     team_id: string;
-    sections: Record<string, string>;
-    skills: Record<string, string>;
-    limits: { max_turns: number | null; bash_timeout: number | null; env_scrub: boolean };
+    choices: Array<{ dimension_id: string; option_id: string; justification: string }>;
+    philosophy: string;
   }): Promise<ConfigureSubmitResponse> =>
     request("/configure/submit", {
       method: "POST",

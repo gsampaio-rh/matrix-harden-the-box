@@ -1,5 +1,69 @@
 # Changelog: Harden the Box
 
+## Harness Content Redesign + Security Hardening
+
+**Date:** 2026-05-07
+**Status:** Complete
+
+Complete redesign of the Harness slide deck narrative flow, new entropy slide, and four security/correctness fixes.
+
+### Harness Slide Deck Redesign
+
+Reordered all slides to follow a pedagogical arc: context → decomposition → knowledge → autonomy → circuit breakers → recovery → entropy → evaluation → configuration. Deleted 2 slides that no longer fit the narrative ("Brain vs Hands", "Infrastructure as Code — for Agents"). Added 1 new slide.
+
+| # | Title | Concept |
+|---|---|---|
+| 1 | Context Strategy: The Memory Problem | Finite context, anxiety, resets vs compaction |
+| 2 | Work Decomposition: Planning vs Doing | One-shotting vs planner cascade failures |
+| 3 | Knowledge Architecture: Context is Zero-Sum | Instructions compete with task for tokens |
+| 4.1 | Autonomy Boundaries: Blast Radius | Reads safe, writes risky; enforce centrally |
+| 4.2 | Circuit Breakers | Max turns, timeouts, env scrub |
+| 5 | Recovery & Resilience: Corrections are Cheap | Git checkpoints, correction > prevention |
+| 5.1 | Entropy: The Agent Assembly Line | Generator → evaluator → GC; sawtooth debt |
+| 6.1 | Self-Evaluation is Broken | 92% self-grade vs 64% actual |
+| 6.2 | Evaluation Strategy: Who Watches the Watchmen? | GAN-inspired evaluator pattern |
+| 7.1 | Configuration = Behavior | Config = agent identity |
+| 7.2 | Map, Not Encyclopedia | 5 principles > 500 rules |
+| 7.3 | Anatomy of a Harness | Four trust layers |
+
+### New Slide: Entropy — The Agent Assembly Line
+
+- Explains the multi-agent pipeline: generator writes → evaluator reviews → GC cleans
+- Visualizes entropy accumulation as sawtooth graph (debt rises, cleanup drops it, baseline drifts up)
+- Bridges Recovery into Evaluation slides narratively
+- New SVG illustration: `ui/src/components/illustrations/HarnessEntropy.tsx`
+
+### Security & Correctness Fixes
+
+| Fix | Impact |
+|---|---|
+| **Admin auth secure-by-default** | `require_admin` now denies access when `HTB_ADMIN_KEY` is unset (was silently open) |
+| **Public timer endpoint** | New `GET /api/teams/timer` — team pages no longer hit admin-protected endpoint |
+| **Persist atomicity** | Removed premature `persist()` from `record_first_submission()` — state only writes after full submission is complete |
+| **ProgressBar bounds check** | `labels[current]` guarded against out-of-bounds access |
+
+### Files Added
+
+- `ui/src/components/illustrations/HarnessEntropy.tsx` — agent assembly line + sawtooth entropy SVG
+
+### Files Changed
+
+- `ui/src/pages/HarnessDemo.tsx` — reordered to 12 slides, removed 2, added Entropy
+- `ui/src/pages/__tests__/HarnessDemo.test.tsx` — updated for 12-slide structure
+- `ui/src/components/ProgressBar.tsx` — bounds check on labels array
+- `ui/src/api.ts` — `getTimer` uses public endpoint
+- `controller/app/dependencies.py` — deny when no admin key configured
+- `controller/app/routers/teams.py` — added `GET /timer` public endpoint
+- `controller/app/state.py` — removed early persist from `record_first_submission`
+- `controller/tests/test_api.py` — tests now set admin key and send header
+
+### Test Results
+
+- 112 backend tests passing (pytest)
+- 85 frontend tests passing (vitest)
+
+---
+
 ## Code Review Refactoring — Security, Architecture & Code Quality
 
 **Date:** 2026-05-07

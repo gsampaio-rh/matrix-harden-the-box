@@ -32,6 +32,14 @@ async def register_team(req: RegisterRequest):
     return {"team": team_id, "status": "registered"}
 
 
+@router.get("/timer")
+async def get_public_timer():
+    end = state.get_timer()
+    if end is None:
+        return {"active": False, "end_time": None}
+    return {"active": True, "end_time": end.isoformat()}
+
+
 @router.get("/{team_id}/status")
 async def get_team_status(team_id: str):
     team_id = team_id.strip().lower()

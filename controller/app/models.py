@@ -46,7 +46,6 @@ class ConfigureChapterState(BaseModel):
     achievements: list[str] = []
     submission: dict | None = None
     breakdown: dict | None = None
-    vectors: list[dict] | None = None
 
 
 class TeamState(BaseModel):
@@ -56,14 +55,13 @@ class TeamState(BaseModel):
 
 # ── Request models ──────────────────────────────────────────────────
 
-class ConfigureLimits(BaseModel):
-    max_turns: int | None = None
-    bash_timeout: int | None = None
-    env_scrub: bool = False
+class DimensionChoice(BaseModel):
+    dimension_id: str
+    option_id: str
+    justification: str = ""
 
 
 class ConfigureSubmission(BaseModel):
     team_id: str
-    sections: dict[str, str]
-    skills: dict[str, str]
-    limits: ConfigureLimits
+    choices: list[DimensionChoice]
+    philosophy: str = ""

@@ -2,13 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Achievements from "../components/Achievements";
 import { api } from "../api";
-import type { ConfigureResults as ConfigureResultsType, AttackVector, ConfigureContent } from "../types";
+import type { ConfigureResults as ConfigureResultsType } from "../types";
 
 export default function ConfigureResults() {
   const navigate = useNavigate();
   const teamId = localStorage.getItem("teamId");
   const [results, setResults] = useState<ConfigureResultsType | null>(null);
-  const [reference, setReference] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -16,10 +15,9 @@ export default function ConfigureResults() {
       navigate("/login");
       return;
     }
-    Promise.all([
-      api.getConfigureResults(teamId).then((r) => setResults(r as ConfigureResultsType)),
-      api.getConfigureContent().then((c) => setReference((c as ConfigureContent).reference_claude_md)),
-    ])
+    api
+      .getConfigureResults(teamId)
+      .then((r) => setResults(r))
       .catch(() => navigate("/configure/exercise"))
       .finally(() => setLoading(false));
   }, [teamId, navigate]);
@@ -39,10 +37,9 @@ export default function ConfigureResults() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
-      {/* Score header */}
       <div className="text-center space-y-3">
         <h2 className="text-sm font-bold text-gray-500 uppercase tracking-widest">
-          Chapter 2 Results — {results.team}
+          Harness Design Results — {results.team}
         </h2>
         <div className="text-5xl font-bold tabular-nums">
           <span style={{ color: pct >= 80 ? "var(--matrix-green)" : pct > 40 ? "var(--matrix-yellow)" : "var(--matrix-red)" }}>
@@ -58,76 +55,63 @@ export default function ConfigureResults() {
         )}
       </div>
 
-      {/* Section breakdown */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <ScoreCard label="Constitution" score={breakdown?.constitution?.score ?? 0} max={10} color="var(--chapter-configure)" />
-        <ScoreCard label="Skills" score={breakdown?.skills?.score ?? 0} max={6} color="var(--chapter-configure)" />
-        <ScoreCard label="Circuit Breakers" score={breakdown?.circuit_breakers?.score ?? 0} max={3} color="var(--chapter-configure)" />
-        <ScoreCard label="Replay Test" score={breakdown?.replay?.score ?? 0} max={6} color="var(--chapter-configure)" />
+        <ScoreCard label="Awareness" score={breakdown?.awareness?.score ?? 0} max={12} color="var(--chapter-configure)" />
+        <ScoreCard label="Coherence" score={breakdown?.coherence?.score ?? 0} max={10} color="var(--chapter-configure)" />
+        <ScoreCard label="Philosophy" score={breakdown?.philosophy?.score ?? 0} max={5} color="var(--chapter-configure)" />
+        <ScoreCard label="Completeness" score={breakdown?.completeness?.score ?? 0} max={3} color="var(--chapter-configure)" />
       </div>
 
-      {/* Attack vectors */}
-      <section>
-        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">
-          Attack Vector Results
-        </h3>
-        <div className="space-y-2">
-          {(results.vectors || []).map((v: AttackVector) => (
-            <div
-              key={v.id}
-              className={`flex items-start gap-3 px-4 py-3 rounded border ${
-                v.blocked
-                  ? "border-[var(--matrix-green)]/30 bg-[var(--matrix-green)]/5"
-                  : "border-[var(--matrix-red)]/30 bg-[var(--matrix-red)]/5"
-              }`}
-            >
-              <span className={`text-sm mt-0.5 ${v.blocked ? "text-[var(--matrix-green)]" : "text-[var(--matrix-red)]"}`}>
-                {v.blocked ? "✓" : "✗"}
-              </span>
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold text-gray-200">{v.name}</span>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                    v.blocked
-                      ? "bg-[var(--matrix-green)]/20 text-[var(--matrix-green)]"
-                      : "bg-[var(--matrix-red)]/20 text-[var(--matrix-red)]"
-                  }`}>
-                    {v.blocked ? "BLOCKED" : "PASSED"}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">{v.reason}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Reference comparison */}
-      {reference && (
+      {breakdown?.coherence && (
         <section>
           <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">
-            Reference: Defensive CLAUDE.md
+            Coherence Analysis
           </h3>
-          <div className="bg-[var(--matrix-dark)] border border-[var(--matrix-green)]/20 rounded-lg p-4">
-            <pre className="text-xs text-gray-400 whitespace-pre-wrap font-mono leading-relaxed">
-              {reference}
-            </pre>
+          <div className="space-y-2">
+            {breakdown.coherence.reinforcements > 0 && (
+              <div className="bg-[var(--matrix-green)]/5 border border-[var(--matrix-green)]/30 rounded p-3">
+                <p className="text-sm text-[var(--matrix-green)] font-semibold">
+                  {breakdown.coherence.reinforcements} reinforcing pair{breakdown.coherence.reinforcements > 1 ? "s" : ""} found
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Your decisions strengthen each other — they form a consistent philosophy.
+                </p>
+              </div>
+            )}
+            {breakdown.coherence.contradictions > 0 && (
+              <div className="bg-[var(--matrix-red)]/5 border border-[var(--matrix-red)]/30 rounded p-3">
+                <p className="text-sm text-[var(--matrix-red)] font-semibold">
+                  {breakdown.coherence.contradictions} contradiction{breakdown.coherence.contradictions > 1 ? "s" : ""} detected
+                </p>
+                <ul className="mt-1 space-y-1">
+                  {breakdown.coherence.contradiction_details.map((d, i) => (
+                    <li key={i} className="text-xs text-gray-400">
+                      {d.pair[0]} vs {d.pair[1]}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {breakdown.coherence.reinforcements === 0 && breakdown.coherence.contradictions === 0 && (
+              <div className="bg-gray-800/50 border border-gray-700 rounded p-3">
+                <p className="text-sm text-gray-400">
+                  No strong reinforcements or contradictions detected in your choices.
+                </p>
+              </div>
+            )}
           </div>
         </section>
       )}
 
-      {/* Key insight */}
       <div className="bg-[var(--chapter-configure)]/10 border border-[var(--chapter-configure)]/30 rounded-lg p-5">
         <p className="text-sm leading-relaxed" style={{ color: "var(--chapter-configure)" }}>
-          <span className="font-bold">Key Insight:</span> Configuration defines <em>INTENT</em>.
-          It tells the agent what it <em>should</em> do. But CLAUDE.md can be overwritten —
-          the agent follows it because it chooses to, not because it's enforced.
-          You need <strong>guardrails</strong> to enforce what the agent <strong>MUST NOT</strong> do.
-          That's Chapter 4.
+          <span className="font-bold">Key Insight:</span> Harness design is about allocating
+          scarce resources — context, autonomy, human attention — between competing objectives.
+          There is no universally correct answer. What matters is that your decisions form
+          a <em>coherent philosophy</em> and you understand what you're trading away.
         </p>
       </div>
 
-      {/* Actions */}
       <div className="flex justify-center gap-3 pb-8">
         <button
           onClick={() => navigate("/scoreboard")}

@@ -14,7 +14,7 @@ export default function ProgressBar({
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-[10px] text-gray-600 font-mono">
-        <span>{labels ? labels[current] : `${current}/${total}`}</span>
+        <span>{labels && current < labels.length ? labels[current] : `${current}/${total}`}</span>
         <span>{labels ? `${current + 1}/${total}` : `${Math.round(pct)}%`}</span>
       </div>
       <div className="w-full bg-gray-800 rounded-full h-1 overflow-hidden">

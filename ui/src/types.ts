@@ -80,37 +80,62 @@ export interface TimerState {
   end_time: string | null;
 }
 
-// ── Chapter 2 types ─────────────────────────────────────────────────
+// ── Chapter 2 types — Harness Design Trade-offs ─────────────────────
 
-export interface ContentAnnotation {
-  line: number;
+export interface DimensionOption {
+  id: string;
+  label: string;
+  description: string;
+  pros: string;
+  cons: string;
+}
+
+export interface Dimension {
+  id: string;
+  title: string;
+  question: string;
+  source: string;
+  options: DimensionOption[];
+  tradeoff_summary: string;
+}
+
+export interface BriefingChallenge {
   text: string;
-  annotation: string;
+  source: string;
+}
+
+export interface Briefing {
+  title: string;
+  scenario: string;
+  challenges: BriefingChallenge[];
+  prompt: string;
 }
 
 export interface ConfigureContent {
-  malicious_claude_md: string;
-  malicious_skill: string;
-  malicious_claude_md_annotations: ContentAnnotation[];
-  malicious_skill_annotations: ContentAnnotation[];
-  reference_claude_md: string;
+  briefing: Briefing;
+  dimensions: Dimension[];
 }
 
-export interface AttackVector {
-  id: string;
-  name: string;
-  prompt_line: string;
-  blocked: boolean;
-  reason: string;
+export interface DimensionChoice {
+  dimension_id: string;
+  option_id: string;
+  justification: string;
 }
 
 export interface ConfigureBreakdown {
   score: number;
   max_score: number;
-  constitution: { score: number; max_score: number; breakdown: Record<string, unknown> };
-  skills: { score: number; max_score: number; breakdown: Record<string, unknown> };
-  circuit_breakers: { score: number; max_score: number; breakdown: Record<string, unknown> };
-  replay: { vectors: AttackVector[]; blocked_count: number; total_vectors: number; score: number; max_score: number };
+  awareness: { score: number; max_score: number; breakdown: Record<string, unknown> };
+  coherence: {
+    score: number;
+    max_score: number;
+    reinforcements: number;
+    contradictions: number;
+    reinforcement_details: Array<{ pair: string[] }>;
+    contradiction_details: Array<{ pair: string[] }>;
+  };
+  philosophy: { score: number; max_score: number; breakdown: Record<string, unknown> };
+  completeness: { score: number; max_score: number; all_dimensions_answered: boolean; all_justified: boolean };
 }
 
 export interface ConfigureSubmitResponse extends ConfigureBreakdown {
@@ -124,5 +149,4 @@ export interface ConfigureResults {
   max_score: number;
   achievements: string[];
   breakdown: ConfigureBreakdown;
-  vectors: AttackVector[];
 }

@@ -111,16 +111,6 @@ def get_configure_breakdown(team_id: str) -> dict | None:
     return team.configure.breakdown if team else None
 
 
-def set_configure_vectors(team_id: str, vectors: list[dict]) -> None:
-    team = teams.get(team_id)
-    if team:
-        team.configure.vectors = vectors
-
-
-def get_configure_vectors(team_id: str) -> list[dict] | None:
-    team = teams.get(team_id)
-    return team.configure.vectors if team else None
-
 
 # ── Shared chapter helpers ───────────────────────────────────────────
 
@@ -165,7 +155,6 @@ def build_chapter_summary(team_id: str) -> dict[str, dict]:
 def record_first_submission(team_id: str, chapter: str) -> bool:
     if first_submission.get(chapter) is None:
         first_submission[chapter] = team_id
-        persist()
         return True
     return False
 

@@ -2,22 +2,32 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app import state
+from app.config import settings
 from app.main import app
 from app.scenarios import SCENARIOS
+
+TEST_ADMIN_KEY = "test-key"
 
 
 @pytest.fixture(autouse=True)
 def clean_state():
     state.set_persist_fn(lambda: None)
     state.clear_all()
+    original_key = settings.admin_key
+    settings.admin_key = TEST_ADMIN_KEY
     yield
     state.clear_all()
+    settings.admin_key = original_key
 
 
 @pytest.fixture
 async def client():
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as c:
+    async with AsyncClient(
+        transport=transport,
+        base_url="http://test",
+        headers={"X-Admin-Key": TEST_ADMIN_KEY},
+    ) as c:
         yield c
 
 
